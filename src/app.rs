@@ -115,31 +115,35 @@ impl Application {
         let factory = gtk::SignalListItemFactory::new();
         factory.connect_setup(move |_, list_item| {
             let label = gtk::Label::new(None);
-            list_item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .set_child(Some(&label));
+            let list_item = list_item.downcast_ref::<gtk::ListItem>()
+                .expect("Needs to be ListItem");
+
+            list_item.set_child(Some(&label));
+
+            list_item.property_expression("item")
+                .chain_property::<gtk::StringObject>("string")
+                .bind(&label, "label", gtk::Widget::NONE);
         });
 
-        factory.connect_bind(move |_, list_item| {
-            // Get `GString` from `ListItem`
-            let string_object = list_item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .item()
-                .and_downcast::<gtk::StringObject>()
-                .expect("The item has to be an `StringObject`.");
+        // factory.connect_bind(move |_, list_item| {
+        //     // Get `GString` from `ListItem`
+        //     let string_object = list_item
+        //         .downcast_ref::<gtk::ListItem>()
+        //         .expect("Needs to be ListItem")
+        //         .item()
+        //         .and_downcast::<gtk::StringObject>()
+        //         .expect("The item has to be an `StringObject`.");
 
-            // Get `Label` from `ListItem`
-            let label = list_item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem")
-                .child()
-                .and_downcast::<gtk::Label>()
-                .expect("The child has to be a `Label`.");
+        //     // Get `Label` from `ListItem`
+        //     let label = list_item
+        //         .downcast_ref::<gtk::ListItem>()
+        //         .expect("Needs to be ListItem")
+        //         .child()
+        //         .and_downcast::<gtk::Label>()
+        //         .expect("The child has to be a `Label`.");
 
-            label.set_label(&string_object.string());
-        });
+        //     label.set_label(&string_object.string());
+        // });
 
         let list = gtk::ListView::builder()
             .name("list")
@@ -199,15 +203,8 @@ fn load_css_content(css: &str) {
 }
 
 fn load_app_list() -> gtk::StringList {
-    // gtk::StringList::new(&[
-    //     "Entry 1", "Entry 2", "Entry 3", "Entry 4", "Entry 5",
-    //     "Entry 6", "Entry 7", "Entry 8", "Entry 9", "Entry 10"
-    // ])
-
-    let names: Vec<_> = gtk::gio::AppInfo::all().iter()
-        .map(|a| a.name())
-        .collect();
-
-    let names: Vec<_> = names.iter().map(|s| s.as_str()).collect();
-    gtk::StringList::new(&names)
+    gtk::gio::AppInfo::all().iter()
+        .filter(|a| a.should_show())
+        .map(|a| a.name().to_string())
+        .collect()
 }
