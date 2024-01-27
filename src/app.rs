@@ -2,7 +2,7 @@ use gtk::prelude::*;
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::{fs, path::PathBuf, sync::Arc};
 
-use super::{cli::Cli, config::Settings, env::get_css_path};
+use super::{cli::{Cli, Commands}, config::Settings, env::get_css_path};
 
 pub struct Application {
     cli: Cli,
@@ -20,6 +20,7 @@ impl Application {
             .application_id("ca.slashdev.waymenu")
             .build();
 
+        // FIXME this feels fuggly, there must be a cleaner way to use `self` in signals
         let self_arc = Arc::new(self);
 
         let self1 = self_arc.clone();
@@ -32,7 +33,7 @@ impl Application {
         app.set_accels_for_action("win.close", &["Escape"]);
 
         // Run the application
-        app.run()
+        app.run_with_args(&[] as &[&str])
     }
 
     fn get_css_path(&self) -> PathBuf {
@@ -44,26 +45,13 @@ impl Application {
 
     fn load_css(&self) {
         match fs::read_to_string(self.get_css_path()) {
-            Ok(css) => Application::load_css_content(css.as_str()),
+            Ok(css) => load_css_content(css.as_str()),
             Err(..) => {
                 // TODO do I want/need fancy logging for this?
                 println!("WARN: Unable to load stylesheet, using builtin style");
-                Application::load_css_content(include_str!("style.css"))
+                load_css_content(include_str!("style.css"))
             }
         }
-    }
-
-    fn load_css_content(css: &str) {
-        // Load the CSS file and add it to the provider
-        let provider = gtk::CssProvider::new();
-        provider.load_from_string(css);
-
-        // Add the provider to the default screen
-        gtk::style_context_add_provider_for_display(
-            &gtk::gdk::Display::default().expect("Could not connect to a display."),
-            &provider,
-            gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
-        );
     }
 
     fn show_window(&self, app: &gtk::Application) {
@@ -100,13 +88,17 @@ impl Application {
         // connect_key_pressed
         window.add_controller(event_ctrl);
 
-        self.build_ui(&window);
+        let items = match &self.cli.command {
+            Commands::Launcher => load_app_list(),
+            Commands::Menu => panic!("Menu not implemented")
+        };
+        self.build_ui(&window, &items);
 
         // Present window
         window.present();
     }
 
-    fn build_ui(&self, window: &gtk::ApplicationWindow) {
+    fn build_ui(&self, window: &gtk::ApplicationWindow, items: &gtk::StringList) {
         let window_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .name("window-box")
@@ -116,13 +108,8 @@ impl Application {
             .name("input")
             .build();
 
-        let list_model = gtk::StringList::new(&[
-            "Entry 1", "Entry 2", "Entry 3", "Entry 4", "Entry 5",
-            "Entry 6", "Entry 7", "Entry 8", "Entry 9", "Entry 10"
-        ]);
-
         let model = gtk::SingleSelection::builder()
-            .model(&list_model)
+            .model(items)
             .build();
 
         let factory = gtk::SignalListItemFactory::new();
@@ -196,4 +183,31 @@ impl Application {
 
          */
     }
+}
+
+fn load_css_content(css: &str) {
+    // Load the CSS file and add it to the provider
+    let provider = gtk::CssProvider::new();
+    provider.load_from_string(css);
+
+    // Add the provider to the default screen
+    gtk::style_context_add_provider_for_display(
+        &gtk::gdk::Display::default().expect("Could not connect to a display."),
+        &provider,
+        gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
+    );
+}
+
+fn load_app_list() -> gtk::StringList {
+    // gtk::StringList::new(&[
+    //     "Entry 1", "Entry 2", "Entry 3", "Entry 4", "Entry 5",
+    //     "Entry 6", "Entry 7", "Entry 8", "Entry 9", "Entry 10"
+    // ])
+
+    let names: Vec<_> = gtk::gio::AppInfo::all().iter()
+        .map(|a| a.name())
+        .collect();
+
+    let names: Vec<_> = names.iter().map(|s| s.as_str()).collect();
+    gtk::StringList::new(&names)
 }

@@ -14,10 +14,14 @@ pub struct Cli {
     /// Path to config file
     /// [default: $WAYMENU_HOME/config.json or $XDG_CONFIG_HOME/waymenu/config.json]
     #[command(subcommand)]
-    pub command: Option<Commands>
+    pub command: Commands
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-    Launcher
+    /// Show launcher for installed applications
+    Launcher,
+
+    /// Show menu of options and output selection to stdout
+    Menu
 }
