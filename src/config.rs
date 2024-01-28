@@ -1,3 +1,4 @@
+use gtk::glib;
 use serde::Deserialize;
 use std::{fs, io};
 
@@ -29,8 +30,7 @@ impl Settings {
         let settings = match fs::read_to_string(get_config_path()) {
             Ok(json) => serde_json::from_str(json.as_str())?,
             Err(..) => {
-                // TODO do I want/need fancy logging for this?
-                println!("WARN: Using default settings");
+                glib::g_warning!("waymenu", "Using default settings");
                 Default::default()
             }
         };
@@ -41,13 +41,8 @@ impl Settings {
 
 // FIXME make default a percentage and calculate from screen size at launch
 
-fn default_width() -> u32 {
-    320
-}
-
-fn default_height() -> u32 {
-    240
-}
+fn default_width() -> u32 { 640 }
+fn default_height() -> u32 { 480 }
 
 #[derive(Deserialize)]
 pub enum Orientation {

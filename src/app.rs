@@ -1,4 +1,4 @@
-use gtk::{gio, prelude::*};
+use gtk::{gio, glib, prelude::*};
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::{fs, path::PathBuf, sync::Arc};
 
@@ -22,20 +22,21 @@ impl Application {
         Self { cli, config }
     }
 
-    pub fn run(self) -> gtk::glib::ExitCode {
+    pub fn run(self) -> glib::ExitCode {
          // Create a new application
         let app = gtk::Application::builder()
             .application_id("ca.slashdev.waymenu")
             .build();
 
-        // FIXME this feels fuggly, there must be a cleaner way to use `self` in signals
-        let self_arc = Arc::new(self);
+        // FIXME this feels wrong, there must be a cleaner way to use `self` in signals
+        let arc_self = Arc::new(self);
 
-        let self1 = self_arc.clone();
-        app.connect_startup(move |_| self1.load_css());
-
-        let self2 = self_arc.clone();
-        app.connect_activate(move |a| self2.show_window(a));
+        app.connect_startup(glib::clone!(
+            @strong arc_self as this => move |_| this.load_css()
+        ));
+        app.connect_activate(glib::clone!(
+            @strong arc_self as this => move |app| this.show_window(app)
+        ));
 
         // Set keyboard accelerator to trigger "win.close".
         app.set_accels_for_action("win.close", &["Escape"]);
@@ -55,8 +56,7 @@ impl Application {
         match fs::read_to_string(self.get_css_path()) {
             Ok(css) => load_css_content(css.as_str()),
             Err(..) => {
-                // TODO do I want/need fancy logging for this?
-                println!("WARN: Unable to load stylesheet, using builtin style");
+                glib::g_warning!("waymenu", "Unable to load stylesheet, using builtin style");
                 load_css_content(include_str!("style.css"))
             }
         }
@@ -67,8 +67,8 @@ impl Application {
             .application(app)
             .name("window")
             .title("Waymenu")
-            .width_request(self.config.width as i32)
-            .height_request(self.config.height as i32)
+            .default_width(self.config.width as i32)
+            .default_height(self.config.height as i32)
             .build();
 
         // Before the window is first realized, set it up to be a layer surface
@@ -88,16 +88,15 @@ impl Application {
             .build();
         window.add_action_entries([action_close]);
 
-        let event_ctrl = gtk::EventControllerKey::new();
-        event_ctrl.connect_key_pressed(|_, keyval, keycode, state| {
-            println!("keyval:{keyval} keycode:{keycode} state:{state}");
-            gtk::glib::Propagation::Proceed
-        });
-        // connect_key_pressed
-        window.add_controller(event_ctrl);
+        // let event_ctrl = gtk::EventControllerKey::new();
+        // event_ctrl.connect_key_pressed(glib::clone!(@weak entry => @default-return glib::Propagation::Proceed, move |_ctrl, keyval, keycode, state| {
+        //     println!("keyval:{keyval} keycode:{keycode} state:{state}");
+        //     glib::Propagation::Proceed
+        // }));
+        // window.add_controller(event_ctrl);
 
         let items = match &self.cli.command {
-            Commands::Launcher => load_app_list(),
+            Commands::Launcher => get_app_list(),
             Commands::Menu => panic!("Menu not implemented")
         };
         self.build_ui(&window, items);
@@ -113,10 +112,10 @@ impl Application {
             .build();
 
         let entry = gtk::SearchEntry::builder()
-            .name("input")
+            .name("search")
             .build();
 
-        let list_item_search_expr = gtk::PropertyExpression::new(
+        let filter_expression = gtk::PropertyExpression::new(
             ListItemObject::static_type(),
             gtk::Expression::NONE,
             "label"
@@ -125,15 +124,19 @@ impl Application {
         let filter = gtk::StringFilter::builder()
             .match_mode(gtk::StringFilterMatchMode::Substring)
             .ignore_case(true)
-            .expression(list_item_search_expr)
+            .expression(filter_expression)
             .build();
 
         let filter_model = gtk::FilterListModel::new(Some(items), Some(filter.clone()));
 
+        // bind search field to search filter
         entry.property_expression("text")
             .bind(&filter, "search", gtk::Widget::NONE);
 
         let list = self.build_list_view(filter_model);
+
+        // send key events to search field when list has focus
+        entry.set_key_capture_widget(Some(&list));
 
         let scroll = gtk::ScrolledWindow::builder()
             .name("scroll")
@@ -197,26 +200,6 @@ impl Application {
                 .bind(&icon, "gicon", gtk::Widget::NONE);
         });
 
-        // factory.connect_bind(move |_, list_item| {
-        //     // Get `GString` from `ListItem`
-        //     let string_object = list_item
-        //         .downcast_ref::<gtk::ListItem>()
-        //         .expect("Needs to be ListItem")
-        //         .item()
-        //         .and_downcast::<gtk::StringObject>()
-        //         .expect("The item has to be an `StringObject`.");
-
-        //     // Get `Label` from `ListItem`
-        //     let label = list_item
-        //         .downcast_ref::<gtk::ListItem>()
-        //         .expect("Needs to be ListItem")
-        //         .child()
-        //         .and_downcast::<gtk::Label>()
-        //         .expect("The child has to be a `Label`.");
-
-        //     label.set_label(&string_object.string());
-        // });
-
         gtk::ListView::builder()
             .name("list")
             .model(&model)
@@ -238,7 +221,7 @@ fn load_css_content(css: &str) {
     );
 }
 
-fn load_app_list() -> gio::ListStore {
+fn get_app_list() -> gio::ListStore {
     gio::AppInfo::all().iter()
         .filter(|a| a.should_show())
         .map(ListItemObject::from)
