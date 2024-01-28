@@ -2,7 +2,15 @@ use gtk::prelude::*;
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::{fs, path::PathBuf, sync::Arc};
 
-use super::{cli::{Cli, Commands}, config::Settings, env::get_css_path};
+mod list_item;
+
+use list_item::ListItemObject;
+use super::{
+    cli::{Cli, Commands},
+    config::Settings,
+    env::get_css_path,
+};
+
 
 pub struct Application {
     cli: Cli,
@@ -98,7 +106,7 @@ impl Application {
         window.present();
     }
 
-    fn build_ui(&self, window: &gtk::ApplicationWindow, items: &gtk::StringList) {
+    fn build_ui(&self, window: &gtk::ApplicationWindow, items: &impl IsA<gtk::gio::ListModel>) {
         let window_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .name("window-box")
@@ -121,7 +129,7 @@ impl Application {
             list_item.set_child(Some(&label));
 
             list_item.property_expression("item")
-                .chain_property::<gtk::StringObject>("string")
+                .chain_property::<ListItemObject>("label")
                 .bind(&label, "label", gtk::Widget::NONE);
         });
 
@@ -202,9 +210,9 @@ fn load_css_content(css: &str) {
     );
 }
 
-fn load_app_list() -> gtk::StringList {
+fn load_app_list() -> gtk::gio::ListStore {
     gtk::gio::AppInfo::all().iter()
         .filter(|a| a.should_show())
-        .map(|a| a.name().to_string())
+        .map(ListItemObject::from)
         .collect()
 }
