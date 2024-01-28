@@ -1,4 +1,5 @@
 use gtk::{
+    gio,
     glib,
     prelude::*,
     subclass::prelude::*,
@@ -10,16 +11,20 @@ glib::wrapper! {
 }
 
 impl ListItemObject {
-    pub fn new(label: &str) -> Self {
+    pub fn new(label: &str, icon: Option<gio::Icon>) -> Self {
         glib::Object::builder()
             .property("label", label)
+            .property("icon", icon)
             .build()
     }
 }
 
-impl From<&gtk::gio::AppInfo> for ListItemObject {
-    fn from(value: &gtk::gio::AppInfo) -> Self {
-        Self::new(value.name().as_str())
+impl From<&gio::AppInfo> for ListItemObject {
+    fn from(app_info: &gio::AppInfo) -> Self {
+        Self::new(
+            app_info.name().as_str(),
+            app_info.icon()
+        )
     }
 }
 
@@ -32,8 +37,8 @@ mod imp {
     pub struct ListItemObject {
         #[property(get, set)]
         pub label: RefCell<String>,
-        // #[property(get, set)]
-        // pub icon: RefCell<Option<String>>
+        #[property(get, set)]
+        pub icon: RefCell<Option<gio::Icon>>
     }
 
     #[glib::object_subclass]

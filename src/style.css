@@ -5,3 +5,11 @@
 #input {
     margin-bottom: 10px;
 }
+
+#list row {
+    padding: 5px;
+}
+
+#list row image {
+    padding-right: 5px;
+}

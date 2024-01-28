@@ -116,21 +116,55 @@ impl Application {
             .name("input")
             .build();
 
+        let list = self.build_list_view(items);
+
+        let scroll = gtk::ScrolledWindow::builder()
+            .name("scroll")
+            .hexpand(true)
+            .vexpand(true)
+            .child(&list)
+            .build();
+
+        window_box.append(&entry);
+        window_box.append(&scroll);
+
+        window.set_child(Some(&window_box));
+    }
+
+    fn build_list_view(&self, items: &impl IsA<gtk::gio::ListModel>) -> gtk::ListView {
         let model = gtk::SingleSelection::builder()
             .model(items)
             .build();
 
         let factory = gtk::SignalListItemFactory::new();
         factory.connect_setup(move |_, list_item| {
-            let label = gtk::Label::new(None);
-            let list_item = list_item.downcast_ref::<gtk::ListItem>()
-                .expect("Needs to be ListItem");
+            let icon = gtk::Image::builder()
+                .icon_size(gtk::IconSize::Large)
+                .build();
 
-            list_item.set_child(Some(&label));
+            let label = gtk::Label::builder()
+                .build();
+
+            let row_box = gtk::Box::builder()
+                // .css_classes(["row-box"])
+                .orientation(gtk::Orientation::Horizontal)
+                .build();
+
+            row_box.append(&icon);
+            row_box.append(&label);
+
+            let list_item = list_item
+                .downcast_ref::<gtk::ListItem>()
+                .expect("gtk::ListItem");
+
+            list_item.set_child(Some(&row_box));
 
             list_item.property_expression("item")
                 .chain_property::<ListItemObject>("label")
                 .bind(&label, "label", gtk::Widget::NONE);
+            list_item.property_expression("item")
+                .chain_property::<ListItemObject>("icon")
+                .bind(&icon, "gicon", gtk::Widget::NONE);
         });
 
         // factory.connect_bind(move |_, list_item| {
@@ -153,47 +187,11 @@ impl Application {
         //     label.set_label(&string_object.string());
         // });
 
-        let list = gtk::ListView::builder()
+        gtk::ListView::builder()
             .name("list")
             .model(&model)
             .factory(&factory)
-            .build();
-
-        let scroll = gtk::ScrolledWindow::builder()
-            .name("scroll")
-            .hexpand(true)
-            .vexpand(true)
-            .child(&list)
-            .build();
-
-        window_box.append(&entry);
-        window_box.append(&scroll);
-
-        window.set_child(Some(&window_box));
-
-        /* Simpler concept, but less scallable for large lists
-
-        let inner_box = gtk::FlowBox::builder()
-            .name("inner-box")
-            .selection_mode(gtk::SelectionMode::Browse)
-            .max_children_per_line(1)
-            // .orientation(gtk::Orientation::Vertical)
-            .build();
-
-        for n in 1..11 {
-            let label = gtk::Label::builder()
-                .label(format!("Entry {}", n))
-                .build();
-
-            let entry = gtk::FlowBoxChild::builder()
-                .name("entry")
-                .child(&label)
-                .build();
-
-            inner_box.append(&entry);
-        }
-
-         */
+            .build()
     }
 }
 
