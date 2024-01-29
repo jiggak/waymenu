@@ -8,7 +8,7 @@ use list_item::ListItemObject;
 use super::{
     cli::{Cli, Commands},
     config::Settings,
-    env::get_css_path,
+    env
 };
 
 
@@ -48,7 +48,7 @@ impl Application {
     fn get_css_path(&self) -> PathBuf {
         match &self.cli.style {
             Some(style_path) => style_path.to_path_buf(),
-            None => get_css_path()
+            None => env::get_css_path()
         }
     }
 
@@ -56,7 +56,7 @@ impl Application {
         match fs::read_to_string(self.get_css_path()) {
             Ok(css) => load_css_content(css.as_str()),
             Err(..) => {
-                glib::g_warning!("waymenu", "Unable to load stylesheet, using builtin style");
+                glib::g_warning!(env::app_name(), "Unable to load stylesheet, using builtin style");
                 load_css_content(include_str!("style.css"))
             }
         }
@@ -66,7 +66,6 @@ impl Application {
         let window = gtk::ApplicationWindow::builder()
             .application(app)
             .name("window")
-            .title("Waymenu")
             .default_width(self.config.width as i32)
             .default_height(self.config.height as i32)
             .build();
@@ -88,13 +87,6 @@ impl Application {
             .build();
         window.add_action_entries([action_close]);
 
-        // let event_ctrl = gtk::EventControllerKey::new();
-        // event_ctrl.connect_key_pressed(glib::clone!(@weak entry => @default-return glib::Propagation::Proceed, move |_ctrl, keyval, keycode, state| {
-        //     println!("keyval:{keyval} keycode:{keycode} state:{state}");
-        //     glib::Propagation::Proceed
-        // }));
-        // window.add_controller(event_ctrl);
-
         let items = match &self.cli.command {
             Commands::Launcher => get_app_list(),
             Commands::Menu => panic!("Menu not implemented")
@@ -105,7 +97,7 @@ impl Application {
         window.present();
     }
 
-    fn build_ui(&self, window: &gtk::ApplicationWindow, items: impl IsA<gtk::gio::ListModel>) {
+    fn build_ui(&self, window: &gtk::ApplicationWindow, items: impl IsA<gio::ListModel>) {
         let window_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .name("window-box")
@@ -115,25 +107,30 @@ impl Application {
             .name("search")
             .build();
 
-        let filter_expression = gtk::PropertyExpression::new(
-            ListItemObject::static_type(),
-            gtk::Expression::NONE,
-            "label"
-        );
+        entry.connect_activate(|_| {
+            println!("entry.activate");
+        });
 
-        let filter = gtk::StringFilter::builder()
-            .match_mode(gtk::StringFilterMatchMode::Substring)
-            .ignore_case(true)
-            .expression(filter_expression)
-            .build();
-
-        let filter_model = gtk::FilterListModel::new(Some(items), Some(filter.clone()));
+        let filter = list_view_filter();
+        let model = list_view_model(items, filter.clone());
+        let factory = list_view_item_factory();
 
         // bind search field to search filter
         entry.property_expression("text")
             .bind(&filter, "search", gtk::Widget::NONE);
 
-        let list = self.build_list_view(filter_model);
+        let list = gtk::ListView::builder()
+            .name("list")
+            .single_click_activate(true)
+            // .tab_behavior(gtk::ListTabBehavior::Item)
+            .can_focus(false)
+            .model(&model)
+            .factory(&factory)
+            .build();
+
+        list.connect_activate(|_, pos| {
+            println!("list.activate {pos}");
+        });
 
         // send key events to search field when list has focus
         entry.set_key_capture_widget(Some(&list));
@@ -149,62 +146,30 @@ impl Application {
         window_box.append(&scroll);
 
         window.set_child(Some(&window_box));
-    }
 
-    fn build_list_view(&self, filter_model: gtk::FilterListModel) -> gtk::ListView {
-        let sorter = gtk::CustomSorter::new(|obj1, obj2| {
-            let list_item1 = obj1
-                .downcast_ref::<ListItemObject>()
-                .expect("ListItemObject expected");
-            let list_item2 = obj2
-                .downcast_ref::<ListItemObject>()
-                .expect("ListItemObject expected");
-
-            // sorted alphabetically a..z
-            list_item1.label().cmp(&list_item2.label()).into()
+        // I couldn't find a combination of properties to make keyboard
+        // navigation work in a nice way with ListView so I had to set
+        // can_focus = false and add this key handler routine
+        let event_ctrl = gtk::EventControllerKey::new();
+        event_ctrl.connect_key_pressed(move |_ctrl, keyval, _keycode, _state| {
+            if let Some(key_name) = keyval.name() {
+                if model.n_items() > 0 {
+                    if key_name == "Down" || key_name == "Tab" {
+                        let i = model.selected();
+                        if i < (model.n_items() - 1) {
+                            list.scroll_to(i+1, gtk::ListScrollFlags::SELECT, None);
+                        }
+                    } else if key_name == "Up" || key_name == "ISO_Left_Tab" {
+                        let i = model.selected();
+                        if i > 0 {
+                            list.scroll_to(i-1, gtk::ListScrollFlags::SELECT, None);
+                        }
+                    }
+                }
+            }
+            glib::Propagation::Stop
         });
-        let sort_model = gtk::SortListModel::new(Some(filter_model), Some(sorter));
-
-        let model = gtk::SingleSelection::builder()
-            .model(&sort_model)
-            .build();
-
-        let factory = gtk::SignalListItemFactory::new();
-        factory.connect_setup(move |_, list_item| {
-            let icon = gtk::Image::builder()
-                .icon_size(gtk::IconSize::Large)
-                .build();
-
-            let label = gtk::Label::builder()
-                .build();
-
-            let row_box = gtk::Box::builder()
-                // .css_classes(["row-box"])
-                .orientation(gtk::Orientation::Horizontal)
-                .build();
-
-            row_box.append(&icon);
-            row_box.append(&label);
-
-            let list_item = list_item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("gtk::ListItem");
-
-            list_item.set_child(Some(&row_box));
-
-            list_item.property_expression("item")
-                .chain_property::<ListItemObject>("label")
-                .bind(&label, "label", gtk::Widget::NONE);
-            list_item.property_expression("item")
-                .chain_property::<ListItemObject>("icon")
-                .bind(&icon, "gicon", gtk::Widget::NONE);
-        });
-
-        gtk::ListView::builder()
-            .name("list")
-            .model(&model)
-            .factory(&factory)
-            .build()
+        window.add_controller(event_ctrl);
     }
 }
 
@@ -226,4 +191,73 @@ fn get_app_list() -> gio::ListStore {
         .filter(|a| a.should_show())
         .map(ListItemObject::from)
         .collect()
+}
+
+fn list_view_filter() -> gtk::StringFilter {
+    let filter_expression = gtk::PropertyExpression::new(
+        ListItemObject::static_type(),
+        gtk::Expression::NONE,
+        "label"
+    );
+
+    gtk::StringFilter::builder()
+        .match_mode(gtk::StringFilterMatchMode::Substring)
+        .ignore_case(true)
+        .expression(filter_expression)
+        .build()
+}
+
+fn list_view_model(items: impl IsA<gtk::gio::ListModel>, filter: impl IsA<gtk::Filter>) -> gtk::SingleSelection {
+    let filter_model = gtk::FilterListModel::new(Some(items), Some(filter.clone()));
+
+    let sorter = gtk::CustomSorter::new(|obj1, obj2| {
+        let list_item1 = obj1
+            .downcast_ref::<ListItemObject>()
+            .expect("ListItemObject expected");
+        let list_item2 = obj2
+            .downcast_ref::<ListItemObject>()
+            .expect("ListItemObject expected");
+
+        // sorted alphabetically a..z
+        list_item1.label().cmp(&list_item2.label()).into()
+    });
+    let sort_model = gtk::SortListModel::new(Some(filter_model), Some(sorter));
+
+    gtk::SingleSelection::builder()
+        .model(&sort_model)
+        .build()
+}
+
+fn list_view_item_factory() -> gtk::SignalListItemFactory {
+    let factory = gtk::SignalListItemFactory::new();
+    factory.connect_setup(move |_, list_item| {
+        let icon = gtk::Image::builder()
+            .icon_size(gtk::IconSize::Large)
+            .build();
+
+        let label = gtk::Label::builder()
+            .build();
+
+        let row_box = gtk::Box::builder()
+            // .css_classes(["row-box"])
+            .orientation(gtk::Orientation::Horizontal)
+            .build();
+
+        row_box.append(&icon);
+        row_box.append(&label);
+
+        let list_item = list_item
+            .downcast_ref::<gtk::ListItem>()
+            .expect("gtk::ListItem");
+
+        list_item.set_child(Some(&row_box));
+
+        list_item.property_expression("item")
+            .chain_property::<ListItemObject>("label")
+            .bind(&label, "label", gtk::Widget::NONE);
+        list_item.property_expression("item")
+            .chain_property::<ListItemObject>("icon")
+            .bind(&icon, "gicon", gtk::Widget::NONE);
+    });
+    factory
 }

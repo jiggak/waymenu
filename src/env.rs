@@ -1,5 +1,10 @@
 use std::{env, path::PathBuf};
 
+
+pub fn app_name() -> &'static str {
+    env!("CARGO_PKG_NAME")
+}
+
 pub fn get_waymenu_home() -> PathBuf {
     let home_dir = env::var("HOME")
         .expect("$HOME env var expected");
@@ -7,8 +12,8 @@ pub fn get_waymenu_home() -> PathBuf {
     match env::var("WAYMENU_HOME") {
         Ok(v) => PathBuf::from(v),
         Err(..) => match env::var("XDG_CONFIG_HOME") {
-            Ok(v) => PathBuf::from(v).join("waymenu"),
-            Err(..) => PathBuf::from(home_dir).join(".config/waymenu")
+            Ok(v) => PathBuf::from(v).join(app_name()),
+            Err(..) => PathBuf::from(home_dir).join(".config").join(app_name())
         }
     }
 }
