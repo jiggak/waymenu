@@ -57,7 +57,7 @@ impl Application {
             Ok(css) => load_css_content(css.as_str()),
             Err(..) => {
                 glib::g_warning!(env::app_name(), "Unable to load stylesheet, using builtin style");
-                load_css_content(include_str!("style.css"))
+                load_css_content(include_str!("../assets/style.css"))
             }
         }
     }
@@ -107,8 +107,9 @@ impl Application {
             .name("search")
             .build();
 
-        entry.connect_activate(|_| {
-            println!("entry.activate");
+        entry.connect_activate(|this| {
+            this.activate_action("win.launch", None)
+                .expect("Activate action win.launch");
         });
 
         let filter = list_view_filter();
@@ -128,8 +129,9 @@ impl Application {
             .factory(&factory)
             .build();
 
-        list.connect_activate(|_, pos| {
-            println!("list.activate {pos}");
+        list.connect_activate(|this, _| {
+            this.activate_action("win.launch", None)
+                .expect("Activate action win.launch");
         });
 
         // send key events to search field when list has focus
@@ -151,7 +153,7 @@ impl Application {
         // navigation work in a nice way with ListView so I had to set
         // can_focus = false and add this key handler routine
         let event_ctrl = gtk::EventControllerKey::new();
-        event_ctrl.connect_key_pressed(move |_ctrl, keyval, _keycode, _state| {
+        event_ctrl.connect_key_pressed(glib::clone!(@weak model => @default-return glib::Propagation::Stop, move |_ctrl, keyval, _keycode, _state| {
             if let Some(key_name) = keyval.name() {
                 if model.n_items() > 0 {
                     if key_name == "Down" || key_name == "Tab" {
@@ -168,8 +170,21 @@ impl Application {
                 }
             }
             glib::Propagation::Stop
-        });
+        }));
         window.add_controller(event_ctrl);
+
+        let action_choose = gio::ActionEntry::builder("launch")
+            .activate(glib::clone!(@weak model, @weak window => move |_, _, _| {
+                let item = model.selected_item();
+                let item = item
+                    .and_downcast_ref::<ListItemObject>()
+                    .expect("ListItemObject");
+
+                item.launch();
+                window.close();
+            }))
+            .build();
+        window.add_action_entries([action_choose]);
     }
 }
 
@@ -180,7 +195,7 @@ fn load_css_content(css: &str) {
 
     // Add the provider to the default screen
     gtk::style_context_add_provider_for_display(
-        &gtk::gdk::Display::default().expect("Could not connect to a display."),
+        &gtk::gdk::Display::default().expect("Could not connect to a display"),
         &provider,
         gtk::STYLE_PROVIDER_PRIORITY_APPLICATION,
     );
@@ -213,10 +228,10 @@ fn list_view_model(items: impl IsA<gtk::gio::ListModel>, filter: impl IsA<gtk::F
     let sorter = gtk::CustomSorter::new(|obj1, obj2| {
         let list_item1 = obj1
             .downcast_ref::<ListItemObject>()
-            .expect("ListItemObject expected");
+            .expect("ListItemObject");
         let list_item2 = obj2
             .downcast_ref::<ListItemObject>()
-            .expect("ListItemObject expected");
+            .expect("ListItemObject");
 
         // sorted alphabetically a..z
         list_item1.label().cmp(&list_item2.label()).into()
