@@ -13,8 +13,8 @@ fn main() -> glib::ExitCode {
 
     let app = app::App::new();
 
-    // Set keyboard accelerator to trigger "win.close".
-    app.set_accels_for_action("win.close", &["Escape"]);
+    // Set keyboard accelerator to trigger "window.close".
+    app.set_accels_for_action("window.close", &["Escape"]);
 
     // Run the application without args to avoid conflict with
     app.run_with_args(&[] as &[&str])

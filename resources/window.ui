@@ -1,14 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <template class="AppWindow" parent="GtkApplicationWindow">
-    <property name="title">My GTK App</property>
+    <!-- <property name="default-widget">list</property> -->
     <child>
-      <object class="GtkButton" id="button">
-        <property name="label">Press me!</property>
-        <property name="margin-top">12</property>
-        <property name="margin-bottom">12</property>
-        <property name="margin-start">12</property>
-        <property name="margin-end">12</property>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="on_key_pressed" swapped="true" />
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="window-box">
+        <property name="name">window-box</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSearchEntry" id="search">
+            <property name="name">search</property>
+            <signal name="activate" handler="on_list_activate" swapped="true" />
+            <!-- Can't seem to get this to do what I expect (trigger "activate" on list)
+              Possibly window.default-widget only works with buttons?
+            <property name="activates-default">true</property>
+              -->
+            <!-- <property name="text"
+              bind-source="list_filter"
+              bind-property="search" /> -->
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scroll">
+            <property name="name">scroll</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <child>
+               <object class="GtkListView" id="list">
+                <property name="name">list</property>
+                <property name="single-click-activate">true</property>
+                <property name="can-focus">false</property>
+                <!-- <property name="tab-behavior">item</property> -->
+                <signal name="activate" handler="on_list_activate" swapped="true" />
+                <!-- <property name="factory">
+                  <object class="GtkBuilderListItemFactory">
+                    <template>
+                    </template>
+                  </object>
+                </property> -->
+              </object>
+            </child>
+          </object>
+        </child>
       </object>
     </child>
   </template>
