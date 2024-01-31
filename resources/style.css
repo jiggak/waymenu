@@ -1,0 +1,20 @@
+#window {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+#search {
+    margin-bottom: 10px;
+}
+
+#list {
+    border-radius: 10px;
+}
+
+#list row {
+    padding: 5px;
+}
+
+#list row image {
+    padding-right: 5px;
+}

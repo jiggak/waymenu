@@ -8,9 +8,9 @@ use super::env;
 #[derive(Deserialize)]
 pub struct Settings {
     #[serde(default = "default_width")]
-    pub width: u32,
+    pub width: i32,
     #[serde(default = "default_height")]
-    pub height: u32,
+    pub height: i32,
     #[serde(default)]
     pub orientation: Orientation
 }
@@ -41,8 +41,8 @@ impl Settings {
 
 // TODO make default a percentage and calculate from screen size at launch
 // or perhaps have an "auto" size mode that resizes to fit content?
-fn default_width() -> u32 { 640 }
-fn default_height() -> u32 { 480 }
+fn default_width() -> i32 { 640 }
+fn default_height() -> i32 { 480 }
 
 #[derive(Deserialize)]
 pub enum Orientation {
