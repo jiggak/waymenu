@@ -61,3 +61,10 @@ mod imp {
     #[glib::derived_properties]
     impl ObjectImpl for ListItemObject { }
 }
+
+pub fn get_app_list() -> gio::ListStore {
+    gio::AppInfo::all().iter()
+        .filter(|a| a.should_show())
+        .map(ListItemObject::from)
+        .collect()
+}

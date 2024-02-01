@@ -20,8 +20,19 @@
             <property name="activates-default">true</property>
               -->
             <!-- <property name="text"
-              bind-source="list_filter"
+              bind-source="list-filter"
               bind-property="search" /> -->
+            <!-- <binding name="text">
+              <lookup name="search" type="GtkStringFilter">
+                <lookup name="filter" type="GtkFilterListModel">
+                  <lookup name="model" type="GtkSortListModel">
+                    <lookup name="model" type="GtkSingleSelection">
+                      <lookup name="list-model">AppWindow</lookup>
+                    </lookup>
+                  </lookup>
+                </lookup>
+              </lookup>
+            </binding> -->
           </object>
         </child>
         <child>
@@ -36,6 +47,9 @@
                 <property name="can-focus">false</property>
                 <!-- <property name="tab-behavior">item</property> -->
                 <signal name="activate" handler="on_list_activate" swapped="true" />
+                <binding name="model">
+                  <lookup name="list-model">AppWindow</lookup>
+                </binding>
                 <!-- <property name="factory">
                   <object class="GtkBuilderListItemFactory">
                     <template>

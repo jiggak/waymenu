@@ -4,7 +4,10 @@ use gtk::{
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::cell::RefCell;
 
-use crate::app::{App, list_item::ListItemObject};
+use crate::app::{
+    App, list_item::get_app_list, list_item::ListItemObject
+};
+use crate::cli::Commands;
 
 
 glib::wrapper! {
@@ -18,11 +21,20 @@ glib::wrapper! {
 impl AppWindow {
     pub fn new(app: &App) -> Self {
         let (def_width, def_height) = app.get_default_size();
-        glib::Object::builder()
+
+        let items = match &app.imp().cli.command {
+            Commands::Launcher => get_app_list(),
+            Commands::Menu => panic!("Menu not implemented")
+        };
+
+        let list_model = new_list_model(items);
+
+        glib::Object::builder::<AppWindow>()
             .property("application", app)
             .property("name", "window")
             .property("default-width", def_width)
             .property("default-height", def_height)
+            .property("list-model", list_model)
             .build()
     }
 
@@ -45,50 +57,6 @@ impl AppWindow {
     }
 
     fn setup_list(&self) {
-        let filter_expression = gtk::PropertyExpression::new(
-            ListItemObject::static_type(),
-            gtk::Expression::NONE,
-            "label"
-        );
-
-        let filter = gtk::StringFilter::builder()
-            .match_mode(gtk::StringFilterMatchMode::Substring)
-            .ignore_case(true)
-            .expression(filter_expression)
-            .build();
-
-        // bind search field to search filter
-        self.imp().search.property_expression("text")
-            .bind(&filter, "search", gtk::Widget::NONE);
-
-        // TODO maybe use an empty gio::ListStore for base model and update its values later?
-        let items = gio::AppInfo::all().iter()
-            .filter(|a| a.should_show())
-            .map(ListItemObject::from)
-            .collect::<gio::ListStore>();
-
-        let filter_model = gtk::FilterListModel::new(Some(items), Some(filter));
-
-        let sorter = gtk::CustomSorter::new(|obj1, obj2| {
-            let list_item1 = obj1
-                .downcast_ref::<ListItemObject>()
-                .expect("ListItemObject");
-            let list_item2 = obj2
-                .downcast_ref::<ListItemObject>()
-                .expect("ListItemObject");
-
-            // sorted alphabetically a..z
-            list_item1.label().cmp(&list_item2.label()).into()
-        });
-        let sort_model = gtk::SortListModel::new(Some(filter_model), Some(sorter));
-
-        let model = gtk::SingleSelection::builder()
-            .model(&sort_model)
-            .build();
-
-        self.imp().list.set_model(Some(&model));
-        self.imp().list_model.replace(model);
-
         let factory = gtk::SignalListItemFactory::new();
         factory.connect_setup(move |_, list_item| {
             let icon = gtk::Image::builder()
@@ -123,9 +91,22 @@ impl AppWindow {
         self.imp().list.set_factory(Some(&factory));
     }
 
+    fn list_filter(&self) -> gtk::StringFilter {
+        self.imp().list_model.borrow()
+            .model()
+            .and_downcast::<gtk::SortListModel>()
+            .expect("gtk::SortListModel")
+            .model()
+            .and_downcast::<gtk::FilterListModel>()
+            .expect("gtk::FilterListModel")
+            .filter()
+            .and_downcast::<gtk::StringFilter>()
+            .expect("gtk::StringFilter")
+    }
+
     #[template_callback]
     fn on_list_activate(&self) {
-        let item = self.imp().list_model.borrow().selected_item();
+        let item = self.list_model().selected_item();
         let item = item
             .and_downcast_ref::<ListItemObject>()
             .expect("ListItemObject");
@@ -136,13 +117,17 @@ impl AppWindow {
     }
 
     #[template_callback]
-    fn on_key_pressed(&self, keyval: gtk::gdk::Key, _keycode: u32, _state: gtk::gdk::ModifierType) -> glib::Propagation {
+    fn on_key_pressed(&self,
+        keyval: gtk::gdk::Key,
+        _keycode: u32,
+        _state: gtk::gdk::ModifierType
+    ) -> glib::Propagation {
         // I couldn't find a combination of properties to make keyboard
         // navigation work in a nice way with ListView so I had to set
         // can-focus = false and add this key handler routine
 
         if let Some(key_name) = keyval.name() {
-            let model = self.imp().list_model.borrow();
+            let model = self.list_model();
             let list = self.imp().list.get();
 
             if model.n_items() > 0 {
@@ -167,12 +152,16 @@ impl AppWindow {
 mod imp {
     use super::*;
 
-    #[derive(gtk::CompositeTemplate, Default)]
+    #[derive(gtk::CompositeTemplate, glib::Properties, Default)]
     #[template(resource = "/ca/slashdev/waymenu/window.ui")]
+    #[properties(wrapper_type = super::AppWindow)]
     pub struct AppWindow {
         #[template_child]
         pub list: gtk::TemplateChild<gtk::ListView>,
 
+        // Without `construct_only`, `list_model` is None inside `constructed()`
+        // and getting filter for search field binding will fail
+        #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
         #[template_child]
@@ -196,6 +185,7 @@ mod imp {
         }
     }
 
+    #[glib::derived_properties]
     impl ObjectImpl for AppWindow {
         fn constructed(&self) {
             // Call "constructed" on parent
@@ -207,6 +197,10 @@ mod imp {
 
             win.setup_list();
 
+            // bind search field to search filter
+            self.search.property_expression("text")
+                .bind(&self.obj().list_filter(), "search", gtk::Widget::NONE);
+
             // send key events to search when key pressed on list
             self.search.set_key_capture_widget(Some(&self.list.get()));
         }
@@ -215,4 +209,46 @@ mod imp {
     impl WidgetImpl for AppWindow {}
     impl WindowImpl for AppWindow {}
     impl ApplicationWindowImpl for AppWindow {}
+}
+
+/// Compare two list items by label alphabetically a..z
+fn cmp_list_item_alpha(obj1: &glib::Object, obj2: &glib::Object) -> gtk::Ordering {
+    let list_item1 = obj1
+        .downcast_ref::<ListItemObject>()
+        .expect("ListItemObject");
+    let list_item2 = obj2
+        .downcast_ref::<ListItemObject>()
+        .expect("ListItemObject");
+
+    // sorted alphabetically a..z
+    list_item1.label().cmp(&list_item2.label()).into()
+}
+
+fn new_list_model(items: impl IsA<gtk::gio::ListModel>) -> gtk::SingleSelection {
+    let filter_expression = gtk::PropertyExpression::new(
+        ListItemObject::static_type(),
+        gtk::Expression::NONE,
+        "label"
+    );
+
+    let filter = gtk::StringFilter::builder()
+        .match_mode(gtk::StringFilterMatchMode::Substring)
+        .ignore_case(true)
+        .expression(filter_expression)
+        .build();
+
+    let filter_model = gtk::FilterListModel::new(
+        Some(items),
+        Some(filter)
+    );
+
+    let sorter = gtk::CustomSorter::new(cmp_list_item_alpha);
+    let sort_model = gtk::SortListModel::new(
+        Some(filter_model),
+        Some(sorter)
+    );
+
+    gtk::SingleSelection::builder()
+        .model(&sort_model)
+        .build()
 }
