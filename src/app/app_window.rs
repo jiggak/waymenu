@@ -22,6 +22,7 @@ impl AppWindow {
     pub fn new(app: &App) -> Self {
         let (def_width, def_height) = app.get_default_size();
 
+        // FIXME feels like this should be in main
         let items = match &app.imp().cli.command {
             Commands::Launcher => get_app_list(),
             Commands::Menu => panic!("Menu not implemented")
@@ -38,13 +39,6 @@ impl AppWindow {
             .build()
     }
 
-    fn _app(&self) -> App {
-        self.application()
-            .expect("Window.application has value")
-            .downcast::<App>()
-            .expect("type is App")
-    }
-
     fn setup_layer(&self) {
         // Before the window is first realized, set it up to be a layer surface
         self.init_layer_shell();
@@ -57,36 +51,11 @@ impl AppWindow {
     }
 
     fn setup_list(&self) {
-        let factory = gtk::SignalListItemFactory::new();
-        factory.connect_setup(move |_, list_item| {
-            let icon = gtk::Image::builder()
-                .icon_size(gtk::IconSize::Large)
-                .build();
-
-            let label = gtk::Label::builder()
-                .build();
-
-            let row_box = gtk::Box::builder()
-                // .css_classes(["row-box"])
-                .orientation(gtk::Orientation::Horizontal)
-                .build();
-
-            row_box.append(&icon);
-            row_box.append(&label);
-
-            let list_item = list_item
-                .downcast_ref::<gtk::ListItem>()
-                .expect("gtk::ListItem");
-
-            list_item.set_child(Some(&row_box));
-
-            list_item.property_expression("item")
-                .chain_property::<ListItemObject>("label")
-                .bind(&label, "label", gtk::Widget::NONE);
-            list_item.property_expression("item")
-                .chain_property::<ListItemObject>("icon")
-                .bind(&icon, "gicon", gtk::Widget::NONE);
-        });
+        let template = include_bytes!("../../assets/ui/list_item.ui");
+        let factory = gtk::BuilderListItemFactory::from_bytes(
+            gtk::BuilderScope::NONE,
+            &glib::Bytes::from_static(template)
+        );
 
         self.imp().list.set_factory(Some(&factory));
     }
@@ -153,7 +122,7 @@ mod imp {
     use super::*;
 
     #[derive(gtk::CompositeTemplate, glib::Properties, Default)]
-    #[template(resource = "/ca/slashdev/waymenu/window.ui")]
+    #[template(file = "../../assets/ui/window.ui")]
     #[properties(wrapper_type = super::AppWindow)]
     pub struct AppWindow {
         #[template_child]

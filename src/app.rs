@@ -38,7 +38,6 @@ impl App {
 mod imp {
     use super::*;
 
-    // #[derive(Default)]
     // #[derive(Default, glib::Properties)]
     // #[properties(wrapper_type = super::App)]
     pub struct App {
@@ -66,7 +65,7 @@ mod imp {
                 Ok(css) => load_css_content(css.as_str()),
                 Err(..) => {
                     glib::g_warning!(env::app_name(), "Unable to load stylesheet, using builtin style");
-                    load_css_content(include_str!("../resources/style.css"))
+                    load_css_content(include_str!("../assets/style.css"))
                 }
             }
         }

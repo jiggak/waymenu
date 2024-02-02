@@ -1,4 +1,4 @@
-use gtk::{gio, glib, prelude::*};
+use gtk::{glib, prelude::*};
 
 mod app;
 mod cli;
@@ -7,10 +7,6 @@ mod env;
 
 
 fn main() -> glib::ExitCode {
-    // Register and include resources
-    gio::resources_register_include!("resources.gresource")
-        .expect("Failed to register resources");
-
     let app = app::App::new();
 
     // Set keyboard accelerator to trigger "window.close".
