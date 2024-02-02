@@ -50,12 +50,6 @@
                 <binding name="model">
                   <lookup name="list-model">AppWindow</lookup>
                 </binding>
-                <!-- <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <template>
-                    </template>
-                  </object>
-                </property> -->
               </object>
             </child>
           </object>

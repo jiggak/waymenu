@@ -163,7 +163,6 @@ mod imp {
             let win = self.obj();
 
             win.setup_layer();
-
             win.setup_list();
 
             // bind search field to search filter
