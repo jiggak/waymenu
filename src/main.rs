@@ -1,17 +1,18 @@
+use gtk::{glib, prelude::*};
+
 mod app;
 mod cli;
 mod config;
 mod env;
 
-use app::Application;
-use cli::{Cli, Parser};
-use config::Settings;
 
-fn main() -> gtk::glib::ExitCode {
-    let cli = Cli::parse();
-    let config = Settings::load()
-        .expect("Valid settings file");
+fn main() -> glib::ExitCode {
+    let app = app::App::new();
 
-    let app = Application::new(cli, config);
-    app.run()
+    // Set keyboard accelerator to trigger "window.close".
+    app.set_accels_for_action("window.close", &["Escape"]);
+
+    // Run the application without args to avoid glib complaining about
+    // unknown/unexpected args
+    app.run_with_args(&[] as &[&str])
 }

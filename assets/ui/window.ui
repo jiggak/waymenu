@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <template class="AppWindow" parent="GtkApplicationWindow">
+    <!-- <property name="default-widget">list</property> -->
+    <child>
+      <object class="GtkEventControllerKey">
+        <signal name="key-pressed" handler="on_key_pressed" swapped="true" />
+      </object>
+    </child>
+    <child>
+      <object class="GtkBox" id="window-box">
+        <property name="name">window-box</property>
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkSearchEntry" id="search">
+            <property name="name">search</property>
+            <signal name="activate" handler="on_list_activate" swapped="true" />
+            <!-- Can't seem to get this to do what I expect (trigger "activate" on list)
+              Possibly window.default-widget only works with buttons?
+            <property name="activates-default">true</property>
+              -->
+            <!-- <property name="text"
+              bind-source="list-filter"
+              bind-property="search" /> -->
+            <!-- <binding name="text">
+              <lookup name="search" type="GtkStringFilter">
+                <lookup name="filter" type="GtkFilterListModel">
+                  <lookup name="model" type="GtkSortListModel">
+                    <lookup name="model" type="GtkSingleSelection">
+                      <lookup name="list-model">AppWindow</lookup>
+                    </lookup>
+                  </lookup>
+                </lookup>
+              </lookup>
+            </binding> -->
+          </object>
+        </child>
+        <child>
+          <object class="GtkScrolledWindow" id="scroll">
+            <property name="name">scroll</property>
+            <property name="hexpand">true</property>
+            <property name="vexpand">true</property>
+            <child>
+               <object class="GtkListView" id="list">
+                <property name="name">list</property>
+                <property name="single-click-activate">true</property>
+                <property name="can-focus">false</property>
+                <!-- <property name="tab-behavior">item</property> -->
+                <signal name="activate" handler="on_list_activate" swapped="true" />
+                <binding name="model">
+                  <lookup name="list-model">AppWindow</lookup>
+                </binding>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>
