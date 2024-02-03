@@ -1,57 +1,59 @@
 use gtk::glib;
+use json_comments::StripComments;
+use once_cell::sync::OnceCell;
 use serde::Deserialize;
 use std::{fs, io};
 
 use super::env;
 
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Copy)]
 pub struct Settings {
-    #[serde(default = "default_width")]
+    #[serde(default = "Settings::default_width")]
     pub width: i32,
-    #[serde(default = "default_height")]
+    #[serde(default = "Settings::default_height")]
     pub height: i32,
-    #[serde(default)]
+    #[serde(default = "Settings::default_orientation")]
     pub orientation: Orientation
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Self {
-            width: default_width(),
-            height: default_height(),
-            orientation: Default::default()
-        }
-    }
 }
 
 impl Settings {
     pub fn load() -> io::Result<Self> {
-        let settings = match fs::read_to_string(env::get_config_path()) {
-            Ok(json) => serde_json::from_str(json.as_str())?,
+        match fs::read_to_string(env::get_config_path()) {
+            Ok(json) => Self::load_json(json.as_str()),
             Err(..) => {
                 glib::g_warning!(env::app_name(), "Using default settings");
-                Default::default()
+                Ok(Self::defaults().clone())
             }
-        };
-
-        Ok(settings)
+        }
     }
+
+    fn load_json(json: &str) -> io::Result<Self> {
+        let stripped = StripComments::new(json.as_bytes());
+        Ok(serde_json::from_reader(stripped)?)
+    }
+
+    fn load_defaults() -> io::Result<Self> {
+        Self::load_json(include_str!("../assets/config.jsonc"))
+    }
+
+    fn defaults() -> &'static Self {
+        static INSTANCE: OnceCell<Settings> = OnceCell::new();
+        INSTANCE.get_or_init(|| {
+            Settings::load_defaults()
+                .expect("Default config should be valid json")
+        })
+    }
+
+    fn default_width() -> i32 { Self::defaults().width }
+    fn default_height() -> i32 { Self::defaults().height }
+    fn default_orientation() -> Orientation { Self::defaults().orientation }
 }
 
-// TODO make default a percentage and calculate from screen size at launch
-// or perhaps have an "auto" size mode that resizes to fit content?
-fn default_width() -> i32 { 640 }
-fn default_height() -> i32 { 480 }
-
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone, Copy)]
 pub enum Orientation {
+    #[serde(alias = "horizontal")]
     Horizontal,
+    #[serde(alias = "vertical")]
     Vertical
-}
-
-impl Default for Orientation {
-    fn default() -> Self {
-        Orientation::Vertical
-    }
 }

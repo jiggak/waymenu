@@ -23,5 +23,5 @@ pub fn get_css_path() -> PathBuf {
 }
 
 pub fn get_config_path() -> PathBuf {
-    get_waymenu_home().join("config.json")
+    get_waymenu_home().join("config.jsonc")
 }
