@@ -1,5 +1,11 @@
 use serde::Deserialize;
-use std::{fs, io, path::{Path, PathBuf}};
+use std::{
+    cell::{OnceCell, RefCell},
+    fs,
+    io::{self, Error, ErrorKind},
+    path::{Path, PathBuf},
+    process::Command
+};
 use gtk::{gio, glib, prelude::*, subclass::prelude::*};
 
 
@@ -8,22 +14,34 @@ glib::wrapper! {
 }
 
 impl ListItemObject {
-    pub fn new<I: IsA<gio::Icon>>(id: &str, label: &str, icon: Option<&I>) -> Self {
-        glib::Object::builder()
+    fn new<I: IsA<gio::Icon>>(id: &str, label: &str, icon: Option<&I>, launch: Launch) -> Self {
+        let obj = glib::Object::builder::<Self>()
             .property("id", id)
             .property("label", label)
             .property("icon", &icon)
-            .build()
+            .build();
+
+        obj.imp().launch
+            .set(launch)
+            .unwrap();
+
+        obj
     }
 
     pub fn launch(&self) {
-        // FIXME this obviously won't work for ListItem's from JSON
-        // they need to either output `id` to stdout, or run their exec field
-        let app_info = gio::DesktopAppInfo::new(self.id().as_str())
-            .expect("DesktopAppInfo from id");
-        app_info.launch(&[], gio::AppLaunchContext::NONE)
-            .expect("Launch application");
+        match self.imp().launch.get().unwrap() {
+            Launch::DestopApp => launch_app_id(self.id().as_str()),
+            Launch::Echo => println!("{}", self.id()),
+            Launch::Exec(exec) => launch_exec(exec).expect("Exec success")
+        };
     }
+}
+
+#[derive(Debug)]
+pub enum Launch {
+    DestopApp,
+    Echo,
+    Exec(Vec<String>)
 }
 
 impl From<&gio::AppInfo> for ListItemObject {
@@ -31,7 +49,8 @@ impl From<&gio::AppInfo> for ListItemObject {
         Self::new(
             app_info.id().expect("AppInfo.id").as_str(),
             app_info.name().as_str(),
-            app_info.icon().as_ref()
+            app_info.icon().as_ref(),
+            Launch::DestopApp
         )
     }
 }
@@ -43,17 +62,22 @@ impl From<&ListItem> for ListItemObject {
             gio::FileIcon::new(&file)
         });
 
+        let launch = match &list_item.exec {
+            Some(exec) => Launch::Exec(exec.clone()),
+            None => Launch::Echo
+        };
+
         Self::new(
             list_item.label.as_str(),
             list_item.label.as_str(),
-            icon.as_ref()
+            icon.as_ref(),
+            launch
         )
     }
 }
 
 mod imp {
     use super::*;
-    use std::cell::RefCell;
 
     #[derive(glib::Properties, Default)]
     #[properties(wrapper_type = super::ListItemObject)]
@@ -63,7 +87,8 @@ mod imp {
         #[property(get, set)]
         pub label: RefCell<String>,
         #[property(get, set)]
-        pub icon: RefCell<Option<gio::Icon>>
+        pub icon: RefCell<Option<gio::Icon>>,
+        pub launch: OnceCell<Launch>
     }
 
     #[glib::object_subclass]
@@ -80,7 +105,7 @@ mod imp {
 pub struct ListItem {
     pub label: String,
     pub icon: Option<PathBuf>,
-    pub exec: Option<String>
+    pub exec: Option<Vec<String>>
 }
 
 impl ListItem {
@@ -88,6 +113,27 @@ impl ListItem {
         let json = fs::read_to_string(file_path)?;
         Ok(serde_json::from_str(json.as_str())?)
     }
+}
+
+fn launch_app_id(id: &str) {
+    let app_info = gio::DesktopAppInfo::new(id)
+        .expect("DesktopAppInfo from id");
+    app_info.launch(&[], gio::AppLaunchContext::NONE)
+        .expect("Launch application");
+}
+
+fn launch_exec(exec: &Vec<String>) -> io::Result<()> {
+    let mut exec_iter = exec.iter();
+
+    let exec_cmd = exec_iter.next()
+        .ok_or(Error::new(ErrorKind::Other, "exec[0] required for command to execute"))?;
+
+    let mut cmd = Command::new(exec_cmd);
+    cmd.args(exec_iter);
+
+    cmd.spawn()?;
+
+    Ok(())
 }
 
 pub fn get_app_list() -> gio::ListStore {
