@@ -5,7 +5,7 @@ use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::cell::RefCell;
 
 use crate::app::{
-    App, list_item::get_app_list, list_item::ListItemObject
+    App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject
 };
 use crate::cli::Commands;
 
@@ -25,7 +25,7 @@ impl AppWindow {
         // FIXME feels like this should be in main
         let items = match &app.imp().cli.command {
             Commands::Launcher => get_app_list(),
-            Commands::Menu => panic!("Menu not implemented")
+            Commands::Menu {file} => get_menu_list(file).unwrap()
         };
 
         let list_model = new_list_model(items);

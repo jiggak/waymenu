@@ -28,7 +28,10 @@ pub enum Commands {
     Launcher,
 
     /// Show menu of options and output selection to stdout
-    Menu
+    Menu {
+        /// Path to json file containing an array of menu item objects
+        file: PathBuf
+    }
 }
 
 impl Cli {
