@@ -14,7 +14,9 @@ pub struct Settings {
     #[serde(default = "Settings::default_height")]
     pub height: i32,
     #[serde(default = "Settings::default_orientation")]
-    pub orientation: Orientation
+    pub orientation: Orientation,
+    #[serde(default)]
+    pub hide_search: bool
 }
 
 impl Settings {
@@ -56,4 +58,13 @@ pub enum Orientation {
     Horizontal,
     #[serde(alias = "vertical")]
     Vertical
+}
+
+impl Orientation {
+    pub fn to_gtk(&self) -> u32 {
+        match self {
+            Orientation::Horizontal => 0,
+            Orientation::Vertical => 1
+        }
+    }
 }

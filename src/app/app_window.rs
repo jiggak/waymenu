@@ -2,7 +2,7 @@ use gtk::{
     gio, glib, glib::prelude::*, prelude::*, subclass::prelude::*
 };
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
 use crate::app::{
     App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject
@@ -22,6 +22,8 @@ impl AppWindow {
     pub fn new(app: &App) -> Self {
         let (def_width, def_height) = app.get_default_size();
 
+        let config = app.imp().config;
+
         // FIXME feels like this should be in main
         let items = match &app.imp().cli.command {
             Commands::Launcher => get_app_list(),
@@ -36,6 +38,8 @@ impl AppWindow {
             .property("default-width", def_width)
             .property("default-height", def_height)
             .property("list-model", list_model)
+            .property("orientation", config.orientation.to_gtk())
+            .property("show-search", !config.hide_search)
             .build()
     }
 
@@ -51,9 +55,19 @@ impl AppWindow {
     }
 
     fn setup_list(&self) {
+        // FIXME more ugly due to lack of gtk::Orientation type on orientation prop
+        let orientation = match self.orientation() {
+            0 => gtk::Orientation::Vertical,
+            1 => gtk::Orientation::Horizontal,
+            x => gtk::Orientation::__Unknown(x as i32)
+        };
+
+        let scope = gtk::BuilderRustScope::new();
+        scope.add_callback("get_orientation", move |_| Some(orientation.to_value()));
+
         let template = include_bytes!("../../assets/ui/list_item.ui");
         let factory = gtk::BuilderListItemFactory::from_bytes(
-            gtk::BuilderScope::NONE,
+            Some(&scope),
             &glib::Bytes::from_static(template)
         );
 
@@ -128,13 +142,20 @@ mod imp {
         #[template_child]
         pub list: gtk::TemplateChild<gtk::ListView>,
 
+        #[template_child]
+        pub search: gtk::TemplateChild<gtk::SearchEntry>,
+
         // Without `construct_only`, `list_model` is None inside `constructed()`
         // and getting filter for search field binding will fail
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        #[template_child]
-        pub search: gtk::TemplateChild<gtk::SearchEntry>
+        #[property(get, set, construct_only)]
+        // FIXME figure out if/how to use gtk::Orientation for the type
+        pub orientation: Cell<u32>,
+
+        #[property(name = "show-search", get, set)]
+        pub show_search: Cell<bool>
     }
 
     #[glib::object_subclass]
@@ -152,6 +173,16 @@ mod imp {
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
             obj.init_template();
         }
+
+        // fn new() -> Self {
+        //     Self {
+        //         list: TemplateChild::default(),
+        //         search: TemplateChild::default(),
+        //         list_model: RefCell::default(),
+        //         orientation: 1.into(),
+        //         show_search: true.into()
+        //     }
+        // }
     }
 
     #[glib::derived_properties]
