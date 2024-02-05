@@ -47,11 +47,14 @@ mod imp {
 
     impl Default for App {
         fn default() -> Self {
+            let cli = Cli::parse();
+            let config_path = cli.get_config_path();
+
             // FIXME this is yucky
             // cli parsing and settings loading shouldn't be in default impl
             Self {
-                cli: Cli::parse(),
-                config: Settings::load()
+                cli,
+                config: Settings::load(&config_path)
                     .expect("Valid settings file")
             }
         }

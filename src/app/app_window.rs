@@ -43,7 +43,7 @@ impl AppWindow {
         // Before the window is first realized, set it up to be a layer surface
         self.init_layer_shell();
 
-        // Exclusive input so keyboard events come through
+        // Exclusive input so keyboard events are captured
         self.set_keyboard_mode(KeyboardMode::Exclusive);
 
         // Display above normal windows

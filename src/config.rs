@@ -2,7 +2,7 @@ use gtk::glib;
 use json_comments::StripComments;
 use once_cell::sync::OnceCell;
 use serde::Deserialize;
-use std::{fs, io};
+use std::{fs, io, path::Path};
 
 use super::env;
 
@@ -18,8 +18,8 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn load() -> io::Result<Self> {
-        match fs::read_to_string(env::get_config_path()) {
+    pub fn load<P: AsRef<Path>>(file_path: P) -> io::Result<Self> {
+        match fs::read_to_string(file_path) {
             Ok(json) => Self::load_json(json.as_str()),
             Err(..) => {
                 glib::g_warning!(env::app_name(), "Using default settings");

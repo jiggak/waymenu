@@ -42,4 +42,12 @@ impl Cli {
             None => env::get_css_path()
         }
     }
+
+    /// Get path to config.json from cli option or fallback to path in config dir
+    pub fn get_config_path(&self) -> PathBuf {
+        match &self.config {
+            Some(config_path) => config_path.to_path_buf(),
+            None => env::get_config_path()
+        }
+    }
 }
