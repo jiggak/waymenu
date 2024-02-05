@@ -60,11 +60,11 @@ pub enum Orientation {
     Vertical
 }
 
-impl Orientation {
-    pub fn to_gtk(&self) -> u32 {
-        match self {
-            Orientation::Horizontal => 0,
-            Orientation::Vertical => 1
+impl From<Orientation> for gtk::Orientation {
+    fn from(v: Orientation) -> Self {
+        match v {
+            Orientation::Horizontal => gtk::Orientation::Horizontal,
+            Orientation::Vertical => gtk::Orientation::Vertical
         }
     }
 }

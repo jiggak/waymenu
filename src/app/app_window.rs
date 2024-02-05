@@ -4,10 +4,10 @@ use gtk::{
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::cell::{Cell, RefCell};
 
-use crate::app::{
-    App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject
+use crate::{
+    app::{App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject},
+    cli::Commands
 };
-use crate::cli::Commands;
 
 
 glib::wrapper! {
@@ -22,23 +22,24 @@ impl AppWindow {
     pub fn new(app: &App) -> Self {
         let (def_width, def_height) = app.get_default_size();
 
-        let config = app.imp().config;
-
         // FIXME feels like this should be in main
         let items = match &app.imp().cli.command {
             Commands::Launcher => get_app_list(),
             Commands::Menu {file} => get_menu_list(file).unwrap()
         };
 
-        let list_model = new_list_model(items);
+        let config = app.imp().config;
 
-        glib::Object::builder::<AppWindow>()
+        let list_model = new_list_model(items);
+        let orientation: gtk::Orientation = config.orientation.into();
+
+        glib::Object::builder()
             .property("application", app)
             .property("name", "window")
             .property("default-width", def_width)
             .property("default-height", def_height)
             .property("list-model", list_model)
-            .property("orientation", config.orientation.to_gtk())
+            .property("orientation", orientation)
             .property("show-search", !config.hide_search)
             .build()
     }
@@ -55,11 +56,11 @@ impl AppWindow {
     }
 
     fn setup_list(&self) {
-        // FIXME more ugly due to lack of gtk::Orientation type on orientation prop
+        // invert orientation applied to list items
+        // i.e. icon above label (vertical) when list is horizontal
         let orientation = match self.orientation() {
-            0 => gtk::Orientation::Vertical,
-            1 => gtk::Orientation::Horizontal,
-            x => gtk::Orientation::__Unknown(x as i32)
+            gtk::Orientation::Horizontal => gtk::Orientation::Vertical,
+            _ => gtk::Orientation::Horizontal
         };
 
         let scope = gtk::BuilderRustScope::new();
@@ -135,7 +136,7 @@ impl AppWindow {
 mod imp {
     use super::*;
 
-    #[derive(gtk::CompositeTemplate, glib::Properties, Default)]
+    #[derive(gtk::CompositeTemplate, glib::Properties)]
     #[template(file = "../../assets/ui/window.ui")]
     #[properties(wrapper_type = super::AppWindow)]
     pub struct AppWindow {
@@ -150,9 +151,8 @@ mod imp {
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        #[property(get, set, construct_only)]
-        // FIXME figure out if/how to use gtk::Orientation for the type
-        pub orientation: Cell<u32>,
+        #[property(get, set, builder(gtk::Orientation::Vertical))]
+        pub orientation: Cell<gtk::Orientation>,
 
         #[property(name = "show-search", get, set)]
         pub show_search: Cell<bool>
@@ -174,15 +174,15 @@ mod imp {
             obj.init_template();
         }
 
-        // fn new() -> Self {
-        //     Self {
-        //         list: TemplateChild::default(),
-        //         search: TemplateChild::default(),
-        //         list_model: RefCell::default(),
-        //         orientation: 1.into(),
-        //         show_search: true.into()
-        //     }
-        // }
+        fn new() -> Self {
+            Self {
+                list: TemplateChild::default(),
+                search: TemplateChild::default(),
+                list_model: RefCell::default(),
+                orientation: gtk::Orientation::Vertical.into(),
+                show_search: true.into()
+            }
+        }
     }
 
     #[glib::derived_properties]
