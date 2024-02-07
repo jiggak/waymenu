@@ -44,6 +44,23 @@ pub struct SettingsOverride {
     pub hide_search: Option<bool>,
 }
 
+impl SettingsOverride {
+    fn apply(&self, settings: &mut Settings) {
+        assign_some(self.width, &mut settings.width);
+        assign_some(self.height, &mut settings.height);
+        assign_some(self.orientation, &mut settings.orientation);
+        assign_some(self.hide_search, &mut settings.hide_search);
+    }
+}
+
+/// If `a` is `Some`, assign value to `b`
+#[inline]
+fn assign_some<T>(a: Option<T>, b: &mut T) {
+    if let Some(val) = a {
+        *b = val;
+    }
+}
+
 #[derive(Subcommand)]
 pub enum Commands {
     /// Show launcher for installed applications
@@ -74,21 +91,7 @@ impl Cli {
 
         let mut settings = Settings::load(&config_path)?;
 
-        if let Some(width) = self.overrides.width {
-            settings.width = width;
-        }
-
-        if let Some(height) = self.overrides.height {
-            settings.height = height;
-        }
-
-        if let Some(orientation) = self.overrides.orientation {
-            settings.orientation = orientation;
-        }
-
-        if let Some(hide_search) = self.overrides.hide_search {
-            settings.hide_search = hide_search;
-        }
+        self.overrides.apply(&mut settings);
 
         Ok(settings)
     }
