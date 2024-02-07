@@ -1,3 +1,4 @@
+use clap::ValueEnum;
 use gtk::glib;
 use json_comments::StripComments;
 use once_cell::sync::OnceCell;
@@ -7,7 +8,7 @@ use std::{fs, io, path::Path};
 use super::env;
 
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Copy, Clone, Deserialize)]
 pub struct Settings {
     #[serde(default = "Settings::default_width")]
     pub width: i32,
@@ -52,7 +53,7 @@ impl Settings {
     fn default_orientation() -> Orientation { Self::defaults().orientation }
 }
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Copy, Clone, Deserialize, ValueEnum)]
 pub enum Orientation {
     #[serde(alias = "horizontal")]
     Horizontal,
