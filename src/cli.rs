@@ -26,21 +26,18 @@ pub struct Cli {
     pub command: Commands
 }
 
-// TODO Should I make a derive macro to generate a function that applies
-// the overrides for each struct field? Then I just have to write the field
-// here when adding more overrides.
 #[derive(Args)]
 pub struct SettingsOverride {
-    #[arg(long)]
+    #[arg(long, help = format!("Window width [default: {}]", Settings::default_width()))]
     pub width: Option<i32>,
 
-    #[arg(long)]
+    #[arg(long, help = format!("Window height [default: {}]", Settings::default_height()))]
     pub height: Option<i32>,
 
-    #[arg(long)]
+    #[arg(long, help = format!("Display menu in vertical or horizontal orientation\ndefault: {}", Settings::default_orientation()))]
     pub orientation: Option<Orientation>,
 
-    #[arg(long)]
+    #[arg(long, help = format!("Hide search field\ndefault: {}", Settings::default_hide_search()))]
     pub hide_search: Option<bool>,
 }
 

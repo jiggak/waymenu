@@ -16,7 +16,7 @@ pub struct Settings {
     pub height: i32,
     #[serde(default = "Settings::default_orientation")]
     pub orientation: Orientation,
-    #[serde(default)]
+    #[serde(default = "Settings::default_hide_search")]
     pub hide_search: bool
 }
 
@@ -48,9 +48,10 @@ impl Settings {
         })
     }
 
-    fn default_width() -> i32 { Self::defaults().width }
-    fn default_height() -> i32 { Self::defaults().height }
-    fn default_orientation() -> Orientation { Self::defaults().orientation }
+    pub fn default_width() -> i32 { Self::defaults().width }
+    pub fn default_height() -> i32 { Self::defaults().height }
+    pub fn default_orientation() -> Orientation { Self::defaults().orientation }
+    pub fn default_hide_search() -> bool { Self::defaults().hide_search }
 }
 
 #[derive(Copy, Clone, Deserialize, ValueEnum)]
@@ -66,6 +67,15 @@ impl From<Orientation> for gtk::Orientation {
         match v {
             Orientation::Horizontal => gtk::Orientation::Horizontal,
             Orientation::Vertical => gtk::Orientation::Vertical
+        }
+    }
+}
+
+impl std::fmt::Display for Orientation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Orientation::Horizontal => f.write_str("horizontal"),
+            Orientation::Vertical => f.write_str("vertical")
         }
     }
 }
