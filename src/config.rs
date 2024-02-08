@@ -1,25 +1,28 @@
+use clap::ValueEnum;
 use gtk::glib;
 use json_comments::StripComments;
 use once_cell::sync::OnceCell;
 use serde::Deserialize;
-use std::{fs, io};
+use std::{fs, io, path::Path};
 
 use super::env;
 
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Copy, Clone, Deserialize)]
 pub struct Settings {
     #[serde(default = "Settings::default_width")]
     pub width: i32,
     #[serde(default = "Settings::default_height")]
     pub height: i32,
     #[serde(default = "Settings::default_orientation")]
-    pub orientation: Orientation
+    pub orientation: Orientation,
+    #[serde(default = "Settings::default_hide_search")]
+    pub hide_search: bool
 }
 
 impl Settings {
-    pub fn load() -> io::Result<Self> {
-        match fs::read_to_string(env::get_config_path()) {
+    pub fn load<P: AsRef<Path>>(file_path: P) -> io::Result<Self> {
+        match fs::read_to_string(file_path) {
             Ok(json) => Self::load_json(json.as_str()),
             Err(..) => {
                 glib::g_warning!(env::app_name(), "Using default settings");
@@ -45,15 +48,34 @@ impl Settings {
         })
     }
 
-    fn default_width() -> i32 { Self::defaults().width }
-    fn default_height() -> i32 { Self::defaults().height }
-    fn default_orientation() -> Orientation { Self::defaults().orientation }
+    pub fn default_width() -> i32 { Self::defaults().width }
+    pub fn default_height() -> i32 { Self::defaults().height }
+    pub fn default_orientation() -> Orientation { Self::defaults().orientation }
+    pub fn default_hide_search() -> bool { Self::defaults().hide_search }
 }
 
-#[derive(Deserialize, Clone, Copy)]
+#[derive(Copy, Clone, Deserialize, ValueEnum)]
 pub enum Orientation {
     #[serde(alias = "horizontal")]
     Horizontal,
     #[serde(alias = "vertical")]
     Vertical
+}
+
+impl From<Orientation> for gtk::Orientation {
+    fn from(v: Orientation) -> Self {
+        match v {
+            Orientation::Horizontal => gtk::Orientation::Horizontal,
+            Orientation::Vertical => gtk::Orientation::Vertical
+        }
+    }
+}
+
+impl std::fmt::Display for Orientation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Orientation::Horizontal => f.write_str("horizontal"),
+            Orientation::Vertical => f.write_str("vertical")
+        }
+    }
 }

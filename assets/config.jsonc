@@ -1,7 +1,8 @@
 {
     "width": 640,  // window width
     "height": 480, // window height
-    "orientation": "vertical"
+    "orientation": "vertical",
+    "hide_search": false
     /* "keys": {
         "close": ["Escape"],
         // "activate"/launch the selected option from the list

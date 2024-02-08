@@ -49,11 +49,12 @@ mod imp {
         fn default() -> Self {
             // FIXME this is yucky
             // cli parsing and settings loading shouldn't be in default impl
-            Self {
-                cli: Cli::parse(),
-                config: Settings::load()
-                    .expect("Valid settings file")
-            }
+
+            let cli = Cli::parse();
+            let config = cli.load_settings()
+                .expect("Valid settings file");
+
+            Self { cli, config }
         }
     }
 

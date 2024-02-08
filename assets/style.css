@@ -15,6 +15,10 @@
     padding: 5px;
 }
 
-#list row image {
+#list row .horizontal image {
     padding-right: 5px;
+}
+
+#list row .vertical image {
+    padding-bottom: 5px;
 }

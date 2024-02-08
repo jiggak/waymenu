@@ -3,7 +3,9 @@
   <template class="GtkListItem">
     <property name="child">
       <object class="GtkBox">
-        <property name="orientation">horizontal</property>
+        <binding name="orientation">
+          <closure type="GtkOrientation" function="get_orientation" />
+        </binding>
         <child>
           <object class="GtkImage">
             <property name="icon-size">large</property>

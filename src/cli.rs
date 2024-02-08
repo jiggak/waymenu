@@ -1,8 +1,9 @@
 pub use clap::Parser;
-use clap::Subcommand;
-use std::path::PathBuf;
+use clap::{Args, Subcommand};
+use std::{io, path::PathBuf};
 
 use crate::env;
+use crate::config::{Orientation, Settings};
 
 
 #[derive(Parser)]
@@ -10,16 +11,51 @@ use crate::env;
 pub struct Cli {
     /// Path to stylesheet
     /// [default: $WAYMENU_HOME/style.css or $XDG_CONFIG_HOME/waymenu/style.css]
-    #[arg(short, verbatim_doc_comment)]
+    #[arg(short, long, verbatim_doc_comment)]
     pub style: Option<PathBuf>,
 
     /// Path to config file
     /// [default: $WAYMENU_HOME/config.json or $XDG_CONFIG_HOME/waymenu/config.json]
-    #[arg(short, verbatim_doc_comment)]
+    #[arg(short, long, verbatim_doc_comment)]
     pub config: Option<PathBuf>,
+
+    #[command(flatten)]
+    pub overrides: SettingsOverride,
 
     #[command(subcommand)]
     pub command: Commands
+}
+
+#[derive(Args)]
+pub struct SettingsOverride {
+    #[arg(long, help = format!("Window width [default: {}]", Settings::default_width()))]
+    pub width: Option<i32>,
+
+    #[arg(long, help = format!("Window height [default: {}]", Settings::default_height()))]
+    pub height: Option<i32>,
+
+    #[arg(long, help = format!("Display menu in vertical or horizontal orientation\ndefault: {}", Settings::default_orientation()))]
+    pub orientation: Option<Orientation>,
+
+    #[arg(long, help = format!("Hide search field\ndefault: {}", Settings::default_hide_search()))]
+    pub hide_search: Option<bool>,
+}
+
+impl SettingsOverride {
+    fn apply(&self, settings: &mut Settings) {
+        assign_some(self.width, &mut settings.width);
+        assign_some(self.height, &mut settings.height);
+        assign_some(self.orientation, &mut settings.orientation);
+        assign_some(self.hide_search, &mut settings.hide_search);
+    }
+}
+
+/// If `a` is `Some`, assign value to `b`
+#[inline]
+fn assign_some<T>(a: Option<T>, b: &mut T) {
+    if let Some(val) = a {
+        *b = val;
+    }
 }
 
 #[derive(Subcommand)]
@@ -41,5 +77,19 @@ impl Cli {
             Some(style_path) => style_path.to_path_buf(),
             None => env::get_css_path()
         }
+    }
+
+    pub fn load_settings(&self) -> io::Result<Settings> {
+        // path to config.json from cli option or fallback to path in config dir
+        let config_path = match &self.config {
+            Some(config_path) => config_path.to_path_buf(),
+            None => env::get_config_path()
+        };
+
+        let mut settings = Settings::load(&config_path)?;
+
+        self.overrides.apply(&mut settings);
+
+        Ok(settings)
     }
 }

@@ -2,12 +2,12 @@ use gtk::{
     gio, glib, glib::prelude::*, prelude::*, subclass::prelude::*
 };
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
-use std::cell::RefCell;
+use std::cell::{Cell, RefCell};
 
-use crate::app::{
-    App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject
+use crate::{
+    app::{App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject},
+    cli::Commands
 };
-use crate::cli::Commands;
 
 
 glib::wrapper! {
@@ -28,14 +28,19 @@ impl AppWindow {
             Commands::Menu {file} => get_menu_list(file).unwrap()
         };
 
-        let list_model = new_list_model(items);
+        let config = app.imp().config;
 
-        glib::Object::builder::<AppWindow>()
+        let list_model = new_list_model(items);
+        let orientation: gtk::Orientation = config.orientation.into();
+
+        glib::Object::builder()
             .property("application", app)
             .property("name", "window")
             .property("default-width", def_width)
             .property("default-height", def_height)
             .property("list-model", list_model)
+            .property("orientation", orientation)
+            .property("show-search", !config.hide_search)
             .build()
     }
 
@@ -43,7 +48,7 @@ impl AppWindow {
         // Before the window is first realized, set it up to be a layer surface
         self.init_layer_shell();
 
-        // Exclusive input so keyboard events come through
+        // Exclusive input so keyboard events are captured
         self.set_keyboard_mode(KeyboardMode::Exclusive);
 
         // Display above normal windows
@@ -51,9 +56,19 @@ impl AppWindow {
     }
 
     fn setup_list(&self) {
+        // invert orientation applied to list items
+        // i.e. icon above label (vertical) when list is horizontal
+        let orientation = match self.orientation() {
+            gtk::Orientation::Horizontal => gtk::Orientation::Vertical,
+            _ => gtk::Orientation::Horizontal
+        };
+
+        let scope = gtk::BuilderRustScope::new();
+        scope.add_callback("get_orientation", move |_| Some(orientation.to_value()));
+
         let template = include_bytes!("../../assets/ui/list_item.ui");
         let factory = gtk::BuilderListItemFactory::from_bytes(
-            gtk::BuilderScope::NONE,
+            Some(&scope),
             &glib::Bytes::from_static(template)
         );
 
@@ -121,20 +136,27 @@ impl AppWindow {
 mod imp {
     use super::*;
 
-    #[derive(gtk::CompositeTemplate, glib::Properties, Default)]
+    #[derive(gtk::CompositeTemplate, glib::Properties)]
     #[template(file = "../../assets/ui/window.ui")]
     #[properties(wrapper_type = super::AppWindow)]
     pub struct AppWindow {
         #[template_child]
         pub list: gtk::TemplateChild<gtk::ListView>,
 
+        #[template_child]
+        pub search: gtk::TemplateChild<gtk::SearchEntry>,
+
         // Without `construct_only`, `list_model` is None inside `constructed()`
         // and getting filter for search field binding will fail
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        #[template_child]
-        pub search: gtk::TemplateChild<gtk::SearchEntry>
+        // `construct_only` important here too so it's initialized in `setup_list`
+        #[property(get, set, construct_only, builder(gtk::Orientation::Vertical))]
+        pub orientation: Cell<gtk::Orientation>,
+
+        #[property(name = "show-search", get, set)]
+        pub show_search: Cell<bool>
     }
 
     #[glib::object_subclass]
@@ -151,6 +173,16 @@ mod imp {
 
         fn instance_init(obj: &glib::subclass::InitializingObject<Self>) {
             obj.init_template();
+        }
+
+        fn new() -> Self {
+            Self {
+                list: TemplateChild::default(),
+                search: TemplateChild::default(),
+                list_model: RefCell::default(),
+                orientation: gtk::Orientation::Vertical.into(),
+                show_search: true.into()
+            }
         }
     }
 
