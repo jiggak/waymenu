@@ -4,10 +4,7 @@ use gtk::{
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::cell::{Cell, RefCell};
 
-use crate::{
-    app::{App, list_item::get_app_list, list_item::get_menu_list, list_item::ListItemObject},
-    cli::Commands
-};
+use super::{App, list_item::ListItemObject};
 
 
 glib::wrapper! {
@@ -20,18 +17,19 @@ glib::wrapper! {
 #[gtk::template_callbacks]
 impl AppWindow {
     pub fn new(app: &App) -> Self {
-        let (def_width, def_height) = app.get_default_size();
+        let ctx = app.ctx();
 
-        // FIXME feels like this should be in main
-        let items = match &app.imp().cli.command {
-            Commands::Launcher => get_app_list(),
-            Commands::Menu {file} => get_menu_list(file).unwrap()
-        };
+        let (def_width, def_height) = ctx.get_window_size();
 
-        let config = app.imp().config;
+        let items = gio::ListStore::builder()
+            .item_type(ListItemObject::static_type())
+            .build();
+
+        ctx.list_items.iter()
+            .for_each(|i| items.append(i));
 
         let list_model = new_list_model(items);
-        let orientation: gtk::Orientation = config.orientation.into();
+        let orientation: gtk::Orientation = ctx.config.orientation.into();
 
         glib::Object::builder()
             .property("application", app)
@@ -40,7 +38,7 @@ impl AppWindow {
             .property("default-height", def_height)
             .property("list-model", list_model)
             .property("orientation", orientation)
-            .property("show-search", !config.hide_search)
+            .property("show-search", !ctx.config.hide_search)
             .build()
     }
 
@@ -151,7 +149,7 @@ mod imp {
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        // `construct_only` important here too so it's initialized in `setup_list`
+        // `construct_only` important here too so orientation has expected value in `setup_list`
         #[property(get, set, construct_only, builder(gtk::Orientation::Vertical))]
         pub orientation: Cell<gtk::Orientation>,
 

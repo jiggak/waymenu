@@ -21,11 +21,11 @@ pub struct Settings {
 }
 
 impl Settings {
-    pub fn load<P: AsRef<Path>>(file_path: P) -> io::Result<Self> {
+    pub fn load(file_path: &Path) -> io::Result<Self> {
         match fs::read_to_string(file_path) {
             Ok(json) => Self::load_json(json.as_str()),
             Err(..) => {
-                glib::g_warning!(env::app_name(), "Using default settings");
+                glib::g_debug!(env::app_name(), "Unable to load {}, using default settings", file_path.to_string_lossy());
                 Ok(Self::defaults().clone())
             }
         }

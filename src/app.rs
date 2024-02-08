@@ -4,17 +4,14 @@ use gtk::{
     prelude::*,
     subclass::prelude::*
 };
-use std::fs;
+use std::cell::OnceCell;
 
+mod app_context;
 mod app_window;
 mod list_item;
 
+pub use app_context::AppContext;
 use app_window::AppWindow;
-use crate::{
-    cli::{Cli, Parser},
-    config::Settings,
-    env
-};
 
 glib::wrapper! {
     pub struct App(ObjectSubclass<imp::App>)
@@ -23,53 +20,37 @@ glib::wrapper! {
 }
 
 impl App {
-    pub fn new() -> Self {
-        glib::Object::builder()
+    pub fn new(ctx: AppContext) -> Self {
+        let app = glib::Object::builder::<Self>()
             .property("application-id", "ca.slashdev.waymenu")
-            .build()
+            .build();
+
+        if app.imp().ctx.set(ctx).is_err() {
+            panic!("App.ctx init failed");
+        }
+
+        app
     }
 
-    // TODO concider putting this in a model
-    pub fn get_default_size(&self) -> (i32, i32) {
-        (self.imp().config.width, self.imp().config.height)
+    pub fn start(&self) -> glib::ExitCode {
+        // Run the application without args to avoid glib complaining
+        // about unknown/unexpected args
+        self.run_with_args(&[] as &[&str])
+    }
+
+    pub fn ctx(&self) -> &AppContext {
+        self.imp().ctx.get().unwrap()
     }
 }
 
 mod imp {
     use super::*;
 
+    #[derive(Default)]
     // #[derive(Default, glib::Properties)]
     // #[properties(wrapper_type = super::App)]
     pub struct App {
-        pub cli: Cli,
-        pub config: Settings
-    }
-
-    impl Default for App {
-        fn default() -> Self {
-            // FIXME this is yucky
-            // cli parsing and settings loading shouldn't be in default impl
-
-            let cli = Cli::parse();
-            let config = cli.load_settings()
-                .expect("Valid settings file");
-
-            Self { cli, config }
-        }
-    }
-
-    impl App {
-        fn load_css(&self) {
-            let css_path = self.cli.get_style_path();
-
-            match fs::read_to_string(css_path) {
-                Ok(css) => load_css_content(css.as_str()),
-                Err(..) => {
-                    glib::g_warning!(env::app_name(), "Unable to load stylesheet, using builtin style");
-                    load_css_content(include_str!("../assets/style.css"))
-                }
-            }
-        }
+        pub ctx: OnceCell<AppContext>
     }
 
     #[glib::object_subclass]
@@ -80,7 +61,14 @@ mod imp {
     }
 
     // #[glib::derived_properties]
-    impl ObjectImpl for App {}
+    impl ObjectImpl for App {
+        fn constructed(&self) {
+            self.parent_constructed();
+
+            // Set keyboard accelerator to trigger "window.close".
+            self.obj().set_accels_for_action("window.close", &["Escape"]);
+        }
+    }
 
     impl ApplicationImpl for App {
         fn activate(&self) {
@@ -93,7 +81,8 @@ mod imp {
         fn startup(&self) {
             self.parent_startup();
 
-            self.load_css();
+            let css = self.obj().ctx().get_css_content();
+            load_css_content(css.as_str());
         }
     }
 

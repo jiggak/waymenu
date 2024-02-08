@@ -136,14 +136,14 @@ fn launch_exec(exec: &Vec<String>) -> io::Result<()> {
     Ok(())
 }
 
-pub fn get_app_list() -> gio::ListStore {
+pub fn get_app_list() -> Vec<ListItemObject> {
     gio::AppInfo::all().iter()
         .filter(|a| a.should_show())
         .map(ListItemObject::from)
         .collect()
 }
 
-pub fn get_menu_list<P: AsRef<Path>>(file_path: P) -> io::Result<gio::ListStore> {
+pub fn get_menu_list<P: AsRef<Path>>(file_path: P) -> io::Result<Vec<ListItemObject>> {
     Ok(ListItem::from_file(file_path)?.iter()
         .map(ListItemObject::from)
         .collect())

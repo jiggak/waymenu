@@ -58,7 +58,7 @@ fn assign_some<T>(a: Option<T>, b: &mut T) {
     }
 }
 
-#[derive(Subcommand)]
+#[derive(Clone, Subcommand)]
 pub enum Commands {
     /// Show launcher for installed applications
     Launcher,
@@ -67,7 +67,10 @@ pub enum Commands {
     Menu {
         /// Path to json file containing an array of menu item objects
         file: PathBuf
-    }
+    },
+
+    /// Write default config.json and style.css files and exit
+    InitConfig
 }
 
 impl Cli {
@@ -79,12 +82,16 @@ impl Cli {
         }
     }
 
-    pub fn load_settings(&self) -> io::Result<Settings> {
-        // path to config.json from cli option or fallback to path in config dir
-        let config_path = match &self.config {
+    /// Get path to config.json from cli option or fallback to path in config dir
+    pub fn get_config_path(&self) -> PathBuf {
+        match &self.config {
             Some(config_path) => config_path.to_path_buf(),
             None => env::get_config_path()
-        };
+        }
+    }
+
+    pub fn load_settings(&self) -> io::Result<Settings> {
+        let config_path = self.get_config_path();
 
         let mut settings = Settings::load(&config_path)?;
 
