@@ -151,7 +151,8 @@ mod imp {
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        #[property(get, set, builder(gtk::Orientation::Vertical))]
+        // `construct_only` important here too so it's initialized in `setup_list`
+        #[property(get, set, construct_only, builder(gtk::Orientation::Vertical))]
         pub orientation: Cell<gtk::Orientation>,
 
         #[property(name = "show-search", get, set)]
