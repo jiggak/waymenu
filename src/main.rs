@@ -12,6 +12,10 @@ use cli::{Cli, Commands, Parser};
 fn main() -> io::Result<glib::ExitCode> {
     let cli = Cli::parse();
 
+    if cli.verbose {
+        std::env::set_var("G_MESSAGES_DEBUG", env::app_name());
+    }
+
     match cli.command.clone() {
         Commands::InitConfig => {
             write_config_defaults(&cli)?;

@@ -19,6 +19,10 @@ pub struct Cli {
     #[arg(short, long, verbatim_doc_comment)]
     pub config: Option<PathBuf>,
 
+    /// Enable verbose logging (or set env var G_MESSAGES_DEBUG=all)
+    #[arg(short, default_value_t = false)]
+    pub verbose: bool,
+
     #[command(flatten)]
     pub overrides: SettingsOverride,
 
