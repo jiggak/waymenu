@@ -1,9 +1,8 @@
 use serde::Deserialize;
 use std::{
     cell::{OnceCell, RefCell},
-    fs,
     io::{self, Error, ErrorKind},
-    path::{Path, PathBuf},
+    path::PathBuf,
     process::Command
 };
 use gtk::{gio, glib, prelude::*, subclass::prelude::*};
@@ -34,6 +33,19 @@ impl ListItemObject {
             Launch::Echo => println!("{}", self.id()),
             Launch::Exec(exec) => launch_exec(exec).expect("Exec success")
         };
+    }
+
+    pub fn app_list() -> Vec<Self> {
+        gio::AppInfo::all().iter()
+            .filter(|a| a.should_show())
+            .map(Self::from)
+            .collect()
+    }
+
+    pub fn menu_list_from_json<R: io::Read>(reader: R) -> io::Result<Vec<Self>> {
+        Ok(ListItem::from_json_reader(reader)?.iter()
+            .map(Self::from)
+            .collect())
     }
 }
 
@@ -109,9 +121,8 @@ pub struct ListItem {
 }
 
 impl ListItem {
-    pub fn from_file<P: AsRef<Path>>(file_path: P) -> io::Result<Vec<Self>> {
-        let json = fs::read_to_string(file_path)?;
-        Ok(serde_json::from_str(json.as_str())?)
+    fn from_json_reader<R: io::Read>(reader: R) -> io::Result<Vec<Self>> {
+        Ok(serde_json::from_reader(reader)?)
     }
 }
 
@@ -134,17 +145,4 @@ fn launch_exec(exec: &Vec<String>) -> io::Result<()> {
     cmd.spawn()?;
 
     Ok(())
-}
-
-pub fn get_app_list() -> Vec<ListItemObject> {
-    gio::AppInfo::all().iter()
-        .filter(|a| a.should_show())
-        .map(ListItemObject::from)
-        .collect()
-}
-
-pub fn get_menu_list<P: AsRef<Path>>(file_path: P) -> io::Result<Vec<ListItemObject>> {
-    Ok(ListItem::from_file(file_path)?.iter()
-        .map(ListItemObject::from)
-        .collect())
 }

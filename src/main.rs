@@ -27,7 +27,7 @@ fn main() -> io::Result<glib::ExitCode> {
             Ok(app.start())
         },
         Commands::Menu { file } => {
-            let ctx = app::AppContext::with_menu_list_file(cli, &file)?;
+            let ctx = app::AppContext::with_menu_list(cli, file)?;
             let app = app::App::new(ctx);
             Ok(app.start())
         }

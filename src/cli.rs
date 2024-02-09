@@ -69,8 +69,9 @@ pub enum Commands {
 
     /// Show menu of options and output selection to stdout
     Menu {
-        /// Path to json file containing an array of menu item objects
-        file: PathBuf
+        /// Path to json file containing an array of menu item objects,
+        /// or read from stdin when file not provided
+        file: Option<PathBuf>
     },
 
     /// Write default config.json and style.css files and exit

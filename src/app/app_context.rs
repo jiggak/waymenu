@@ -1,7 +1,7 @@
 use gtk::glib;
-use std::{fs, io, path::Path};
+use std::{fs::{self, File}, io::{self, BufReader}, path::PathBuf};
 use crate::{cli::Cli, config::Settings, env};
-use super::list_item::{get_app_list, get_menu_list, ListItemObject};
+use super::list_item::ListItemObject;
 
 
 pub struct AppContext {
@@ -18,11 +18,18 @@ impl AppContext {
     }
 
     pub fn with_app_list(cli: Cli) -> io::Result<Self> {
-        Self::new(cli, get_app_list())
+        Self::new(cli, ListItemObject::app_list())
     }
 
-    pub fn with_menu_list_file<P: AsRef<Path>>(cli: Cli, file_path: P) -> io::Result<Self> {
-        Self::new(cli, get_menu_list(file_path)?)
+    pub fn with_menu_list(cli: Cli, file_path: Option<PathBuf>) -> io::Result<Self> {
+        let stream: Box<dyn io::Read> = match file_path {
+            Some(file_path) => Box::new(File::open(file_path)?),
+            None => Box::new(io::stdin())
+        };
+
+        let reader = BufReader::new(stream);
+
+        Self::new(cli, ListItemObject::menu_list_from_json(reader)?)
     }
 
     pub fn get_window_size(&self) -> (i32, i32) {
