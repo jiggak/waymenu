@@ -15,7 +15,7 @@ pub struct Cli {
     pub style: Option<PathBuf>,
 
     /// Path to config file
-    /// [default: $WAYMENU_HOME/config.json or $XDG_CONFIG_HOME/waymenu/config.json]
+    /// [default: $WAYMENU_HOME/config.jsonc or $XDG_CONFIG_HOME/waymenu/config.jsonc]
     #[arg(short, long, verbatim_doc_comment)]
     pub config: Option<PathBuf>,
 
@@ -67,14 +67,14 @@ pub enum Commands {
     /// Show launcher for installed applications
     Launcher,
 
-    /// Show menu of options and output selection to stdout
+    /// Show custom menu of options and output selection to stdout
     Menu {
         /// Path to json file containing an array of menu item objects,
         /// or read from stdin when file not provided
         file: Option<PathBuf>
     },
 
-    /// Write default config.json and style.css files and exit
+    /// Write default config.jsonc, style.css files and exit
     InitConfig
 }
 
