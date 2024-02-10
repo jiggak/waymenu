@@ -41,8 +41,8 @@ pub struct SettingsOverride {
     #[arg(long, help = format!("Display menu in vertical or horizontal orientation\ndefault: {}", Settings::default_orientation()))]
     pub orientation: Option<Orientation>,
 
-    #[arg(long, help = format!("Hide search field\ndefault: {}", Settings::default_hide_search()))]
-    pub hide_search: Option<bool>,
+    #[arg(long, help = "Hide search field")]
+    pub hide_search: bool,
 }
 
 impl SettingsOverride {
@@ -50,7 +50,9 @@ impl SettingsOverride {
         assign_some(self.width, &mut settings.width);
         assign_some(self.height, &mut settings.height);
         assign_some(self.orientation, &mut settings.orientation);
-        assign_some(self.hide_search, &mut settings.hide_search);
+        if self.hide_search {
+            settings.hide_search = true;
+        }
     }
 }
 
