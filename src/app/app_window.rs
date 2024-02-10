@@ -71,6 +71,12 @@ impl AppWindow {
         );
 
         self.imp().list.set_factory(Some(&factory));
+
+        // search field delegates "activate" signal to list when enter is pressed
+        // when search is hidden, we let list field have focus so "activate" works
+        if !self.show_search() {
+            self.imp().list.set_can_focus(true);
+        }
     }
 
     fn list_filter(&self) -> gtk::StringFilter {
@@ -144,16 +150,16 @@ mod imp {
         #[template_child]
         pub search: gtk::TemplateChild<gtk::SearchEntry>,
 
-        // Without `construct_only`, `list_model` is None inside `constructed()`
-        // and getting filter for search field binding will fail
+        // I don't know why, but the values set for properties in AppWindow::new()
+        // are not available in constructed method, unless `construct_only` is set
+
         #[property(name = "list-model", get, set, construct_only)]
         pub list_model: RefCell<gtk::SingleSelection>,
 
-        // `construct_only` important here too so orientation has expected value in `setup_list`
         #[property(get, set, construct_only, builder(gtk::Orientation::Vertical))]
         pub orientation: Cell<gtk::Orientation>,
 
-        #[property(name = "show-search", get, set)]
+        #[property(name = "show-search", get, set, construct_only)]
         pub show_search: Cell<bool>
     }
 
