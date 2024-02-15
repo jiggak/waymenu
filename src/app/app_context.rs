@@ -11,14 +11,10 @@ pub struct AppContext {
 }
 
 impl AppContext {
-    fn new(cli: Cli, list_items: Vec<ListItemObject>) -> io::Result<Self> {
-        let config = cli.load_settings()?;
-
-        Ok(Self { cli, config, list_items })
-    }
-
     pub fn with_app_list(cli: Cli) -> io::Result<Self> {
-        Self::new(cli, ListItemObject::app_list())
+        let config = cli.load_settings()?;
+        let list_items = ListItemObject::app_list(config.history_size)?;
+        Ok(Self { cli, config, list_items })
     }
 
     pub fn with_menu_list(cli: Cli, file_path: Option<PathBuf>) -> io::Result<Self> {
@@ -29,7 +25,11 @@ impl AppContext {
 
         let reader = BufReader::new(stream);
 
-        Self::new(cli, ListItemObject::menu_list_from_json(reader)?)
+        let list_items = ListItemObject::menu_list_from_json(reader)?;
+
+        let config = cli.load_settings()?;
+
+        Ok(Self { cli, config, list_items })
     }
 
     pub fn get_window_size(&self) -> (i32, i32) {

@@ -5,7 +5,7 @@ pub fn app_name() -> &'static str {
     env!("CARGO_PKG_NAME")
 }
 
-pub fn get_waymenu_home() -> PathBuf {
+fn waymenu_home_dir() -> PathBuf {
     let home_dir = env::var("HOME")
         .expect("$HOME env var expected");
 
@@ -18,10 +18,27 @@ pub fn get_waymenu_home() -> PathBuf {
     }
 }
 
+fn waymenu_state_dir() -> PathBuf {
+    let home_dir = env::var("HOME")
+        .expect("$HOME env var expected");
+
+    match env::var("WAYMENU_HOME") {
+        Ok(v) => PathBuf::from(v),
+        Err(..) => match env::var("XDG_STATE_HOME") {
+            Ok(v) => PathBuf::from(v).join(app_name()),
+            Err(..) => PathBuf::from(home_dir).join(".local/state").join(app_name())
+        }
+    }
+}
+
 pub fn get_css_path() -> PathBuf {
-    get_waymenu_home().join("style.css")
+    waymenu_home_dir().join("style.css")
 }
 
 pub fn get_config_path() -> PathBuf {
-    get_waymenu_home().join("config.jsonc")
+    waymenu_home_dir().join("config.jsonc")
+}
+
+pub fn get_history_path() -> PathBuf {
+    waymenu_state_dir().join("history")
 }

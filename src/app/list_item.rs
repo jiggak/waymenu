@@ -1,11 +1,14 @@
 use serde::Deserialize;
 use std::{
     cell::{OnceCell, RefCell},
+    collections::HashMap,
+    fs,
     io::{self, Error, ErrorKind},
     path::PathBuf,
     process::Command
 };
 use gtk::{gio, glib, prelude::*, subclass::prelude::*};
+use crate::env;
 
 
 glib::wrapper! {
@@ -27,19 +30,35 @@ impl ListItemObject {
         obj
     }
 
-    pub fn launch(&self) {
+    pub fn launch(&self, history_size: usize) {
         match self.imp().launch.get().unwrap() {
-            Launch::DestopApp => launch_app_id(self.id().as_str()),
+            Launch::DestopApp => launch_app_id(self.id().as_str(), history_size),
             Launch::Echo => println!("{}", self.id()),
             Launch::Exec(exec) => launch_exec(exec).expect("Exec success")
         };
     }
 
-    pub fn app_list() -> Vec<Self> {
-        gio::AppInfo::all().iter()
+    pub fn app_list(history_size: usize) -> io::Result<Vec<Self>> {
+        let history = read_history(history_size)?;
+
+        let (mut recent, mut apps): (Vec<_>, Vec<_>) = gio::AppInfo::all().iter()
             .filter(|a| a.should_show())
             .map(Self::from)
-            .collect()
+            .partition(|e| history.contains(&e.id()));
+
+        let history: HashMap<_, _> = history.iter()
+            .enumerate()
+            .map(|(i, e)| (e, i))
+            .collect();
+
+        // match order of launch history elements
+        recent.sort_by_key(|a| history.get(&a.id()).unwrap());
+
+        // sort non-recent apps alphabetically by label
+        apps.sort_by(|a, b| a.label().cmp(&b.label()));
+
+        recent.append(&mut apps);
+        Ok(recent)
     }
 
     pub fn menu_list_from_json<R: io::Read>(reader: R) -> io::Result<Vec<Self>> {
@@ -126,11 +145,13 @@ impl ListItem {
     }
 }
 
-fn launch_app_id(id: &str) {
+fn launch_app_id(id: &str, history_size: usize) {
     let app_info = gio::DesktopAppInfo::new(id)
         .expect("DesktopAppInfo from id");
     app_info.launch(&[], gio::AppLaunchContext::NONE)
         .expect("Launch application");
+    let _ = save_history(id, history_size)
+        .inspect_err(|e| glib::g_error!(env::app_name(), "Error {e} saving launch history"));
 }
 
 fn launch_exec(exec: &Vec<String>) -> io::Result<()> {
@@ -145,4 +166,35 @@ fn launch_exec(exec: &Vec<String>) -> io::Result<()> {
     cmd.spawn()?;
 
     Ok(())
+}
+
+fn read_history(length: usize) -> io::Result<Vec<String>> {
+    let history_file = env::get_history_path();
+    let history = if history_file.exists() {
+        fs::read_to_string(history_file)?
+            .lines()
+            .take(length)
+            .map(String::from)
+            .collect()
+    } else {
+        vec![]
+    };
+
+    Ok(history)
+}
+
+fn save_history(app_id: &str, length: usize) -> io::Result<()> {
+    let history = read_history(length)?;
+
+    let history: Vec<_> = vec![app_id.to_owned()].into_iter()
+        .chain(history.into_iter().filter(|e| e != app_id))
+        .take(length)
+        .collect();
+
+    let history_file = env::get_history_path();
+    let state_dir = history_file.parent().unwrap();
+    fs::create_dir_all(state_dir)?;
+
+    let content = history.join("\n");
+    fs::write(history_file, content)
 }

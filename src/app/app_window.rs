@@ -42,6 +42,10 @@ impl AppWindow {
             .build()
     }
 
+    fn app(&self) -> App {
+        self.application().and_downcast().unwrap()
+    }
+
     fn setup_layer(&self) {
         // Before the window is first realized, set it up to be a layer surface
         self.init_layer_shell();
@@ -82,9 +86,6 @@ impl AppWindow {
     fn list_filter(&self) -> gtk::StringFilter {
         self.imp().list_model.borrow()
             .model()
-            .and_downcast::<gtk::SortListModel>()
-            .expect("gtk::SortListModel")
-            .model()
             .and_downcast::<gtk::FilterListModel>()
             .expect("gtk::FilterListModel")
             .filter()
@@ -99,7 +100,7 @@ impl AppWindow {
             .and_downcast_ref::<ListItemObject>()
             .expect("ListItemObject");
 
-        item.launch();
+        item.launch(self.app().ctx().config.history_size);
 
         self.close();
     }
@@ -215,19 +216,6 @@ mod imp {
     impl ApplicationWindowImpl for AppWindow {}
 }
 
-/// Compare two list items by label alphabetically a..z
-fn cmp_list_item_alpha(obj1: &glib::Object, obj2: &glib::Object) -> gtk::Ordering {
-    let list_item1 = obj1
-        .downcast_ref::<ListItemObject>()
-        .expect("ListItemObject");
-    let list_item2 = obj2
-        .downcast_ref::<ListItemObject>()
-        .expect("ListItemObject");
-
-    // sorted alphabetically a..z
-    list_item1.label().cmp(&list_item2.label()).into()
-}
-
 fn new_list_model(items: impl IsA<gtk::gio::ListModel>) -> gtk::SingleSelection {
     let filter_expression = gtk::PropertyExpression::new(
         ListItemObject::static_type(),
@@ -246,13 +234,7 @@ fn new_list_model(items: impl IsA<gtk::gio::ListModel>) -> gtk::SingleSelection 
         Some(filter)
     );
 
-    let sorter = gtk::CustomSorter::new(cmp_list_item_alpha);
-    let sort_model = gtk::SortListModel::new(
-        Some(filter_model),
-        Some(sorter)
-    );
-
     gtk::SingleSelection::builder()
-        .model(&sort_model)
+        .model(&filter_model)
         .build()
 }

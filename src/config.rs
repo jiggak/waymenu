@@ -17,7 +17,9 @@ pub struct Settings {
     #[serde(default = "Settings::default_orientation")]
     pub orientation: Orientation,
     #[serde(default = "Settings::default_hide_search")]
-    pub hide_search: bool
+    pub hide_search: bool,
+    #[serde(default = "Settings::default_history_size")]
+    pub history_size: usize
 }
 
 impl Settings {
@@ -52,6 +54,7 @@ impl Settings {
     pub fn default_height() -> i32 { Self::defaults().height }
     pub fn default_orientation() -> Orientation { Self::defaults().orientation }
     pub fn default_hide_search() -> bool { Self::defaults().hide_search }
+    pub fn default_history_size() -> usize { Self::defaults().history_size }
 }
 
 #[derive(Copy, Clone, Deserialize, ValueEnum)]
