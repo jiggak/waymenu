@@ -62,7 +62,7 @@ pub struct SettingsOverride {
     #[arg(long, help = "Hide search field")]
     pub hide_search: bool,
 
-    #[arg(long, help = format!("Max recent apps in launcher list\ndefault: {} [0 disables launch history]", Settings::default_history_size()))]
+    #[arg(long, help = format!("Max recent apps at top of launcher list\ndefault: {} [0 disables launch history]", Settings::default_history_size()))]
     pub history_size: Option<usize>,
 }
 
