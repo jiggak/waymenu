@@ -16,7 +16,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-use gtk::{gio, glib, glib::prelude::*, prelude::*, subclass::prelude::*};
+use gtk::{gio, glib::{self, prelude::*}, prelude::*, subclass::prelude::*};
 use gtk4_layer_shell::{KeyboardMode, Layer, LayerShell};
 use std::cell::{Cell, RefCell};
 
@@ -99,16 +99,6 @@ impl AppWindow {
         }
     }
 
-    fn list_filter(&self) -> gtk::StringFilter {
-        self.imp().list_model.borrow()
-            .model()
-            .and_downcast::<gtk::FilterListModel>()
-            .expect("gtk::FilterListModel")
-            .filter()
-            .and_downcast::<gtk::StringFilter>()
-            .expect("gtk::StringFilter")
-    }
-
     #[template_callback]
     fn on_list_activate(&self) {
         let item = self.list_model().selected_item();
@@ -177,7 +167,27 @@ mod imp {
         pub orientation: Cell<gtk::Orientation>,
 
         #[property(name = "show-search", get, set, construct_only)]
-        pub show_search: Cell<bool>
+        pub show_search: Cell<bool>,
+
+        #[property(set = Self::set_search_filter)]
+        pub search_filter: RefCell<String>
+    }
+
+    impl AppWindow {
+        fn set_search_filter(&self, search: &glib::Value) {
+            let filter = self.list_model.borrow()
+                .model()
+                .and_downcast::<gtk::FilterListModel>()
+                .expect("gtk::FilterListModel")
+                .filter()
+                .and_downcast::<gtk::AnyFilter>()
+                .expect("gtk::AnyFilter");
+
+            for str_filter in filter.iter::<glib::Object>() {
+                str_filter.unwrap()
+                    .set_property("search", search);
+            }
+        }
     }
 
     #[glib::object_subclass]
@@ -202,7 +212,8 @@ mod imp {
                 search: TemplateChild::default(),
                 list_model: RefCell::default(),
                 orientation: gtk::Orientation::Vertical.into(),
-                show_search: true.into()
+                show_search: true.into(),
+                search_filter: "".to_string().into()
             }
         }
     }
@@ -219,8 +230,9 @@ mod imp {
             win.setup_list();
 
             // bind search field to search filter
-            self.search.property_expression("text")
-                .bind(&self.obj().list_filter(), "search", gtk::Widget::NONE);
+            self.search.bind_property("text", win.as_ref(), "search_filter")
+                .sync_create()
+                .build();
 
             // send key events to search when key pressed on list
             self.search.set_key_capture_widget(Some(&self.list.get()));
@@ -233,17 +245,35 @@ mod imp {
 }
 
 fn new_list_model(items: impl IsA<gtk::gio::ListModel>) -> gtk::SingleSelection {
-    let filter_expression = gtk::PropertyExpression::new(
+    let label_prop_expr = gtk::PropertyExpression::new(
         ListItemObject::static_type(),
         gtk::Expression::NONE,
         "label"
     );
 
-    let filter = gtk::StringFilter::builder()
-        .match_mode(gtk::StringFilterMatchMode::Substring)
-        .ignore_case(true)
-        .expression(filter_expression)
-        .build();
+    let exec_prop_expr = gtk::PropertyExpression::new(
+        ListItemObject::static_type(),
+        gtk::Expression::NONE,
+        "executable"
+    );
+
+    let filter = gtk::AnyFilter::new();
+
+    filter.append(
+        gtk::StringFilter::builder()
+            .match_mode(gtk::StringFilterMatchMode::Substring)
+            .ignore_case(true)
+            .expression(label_prop_expr)
+            .build()
+    );
+
+    filter.append(
+        gtk::StringFilter::builder()
+            .match_mode(gtk::StringFilterMatchMode::Substring)
+            .ignore_case(true)
+            .expression(exec_prop_expr)
+            .build()
+    );
 
     let filter_model = gtk::FilterListModel::new(
         Some(items),

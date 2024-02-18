@@ -34,10 +34,11 @@ glib::wrapper! {
 }
 
 impl ListItemObject {
-    fn new<I: IsA<gio::Icon>>(id: &str, label: &str, icon: Option<&I>, launch: Launch) -> Self {
+    fn new<I: IsA<gio::Icon>>(id: &str, label: &str, executable: &str, icon: Option<&I>, launch: Launch) -> Self {
         let obj = glib::Object::builder::<Self>()
             .property("id", id)
             .property("label", label)
+            .property("executable", executable)
             .property("icon", &icon)
             .build();
 
@@ -50,7 +51,7 @@ impl ListItemObject {
 
     pub fn launch(&self, history_size: usize) {
         match self.imp().launch.get().unwrap() {
-            Launch::DestopApp => launch_app_id(self.id().as_str(), history_size),
+            Launch::DesktopApp => launch_app_id(self.id().as_str(), history_size),
             Launch::Echo => println!("{}", self.id()),
             Launch::Exec(exec) => launch_exec(exec).expect("Exec success")
         };
@@ -88,7 +89,7 @@ impl ListItemObject {
 
 #[derive(Debug)]
 pub enum Launch {
-    DestopApp,
+    DesktopApp,
     Echo,
     Exec(Vec<String>)
 }
@@ -98,8 +99,9 @@ impl From<&gio::AppInfo> for ListItemObject {
         Self::new(
             app_info.id().expect("AppInfo.id").as_str(),
             app_info.name().as_str(),
+            app_info.executable().file_name().unwrap().to_str().unwrap(),
             app_info.icon().as_ref(),
-            Launch::DestopApp
+            Launch::DesktopApp
         )
     }
 }
@@ -119,6 +121,7 @@ impl From<&ListItem> for ListItemObject {
         Self::new(
             list_item.label.as_str(),
             list_item.label.as_str(),
+            list_item.label.as_str(),
             icon.as_ref(),
             launch
         )
@@ -133,10 +136,16 @@ mod imp {
     pub struct ListItemObject {
         #[property(get, set)]
         pub id: RefCell<String>,
+
         #[property(get, set)]
         pub label: RefCell<String>,
+
+        #[property(get, set)]
+        pub executable: RefCell<String>,
+
         #[property(get, set)]
         pub icon: RefCell<Option<gio::Icon>>,
+
         pub launch: OnceCell<Launch>
     }
 
