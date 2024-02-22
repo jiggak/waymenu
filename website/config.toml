@@ -15,7 +15,7 @@ theme = "apollo"
 highlight_code = true
 
 [extra]
-theme = "auto" # light, dark, auto, toggle
+theme = "toggle" # light, dark, auto, toggle
 
 menu = [
     { name = "home", url = "/", weight = 1 },
@@ -27,3 +27,6 @@ menu = [
 socials = [
     { name = "github", url = "https://github.com/jiggak/waymenu/", icon = "github" },
 ]
+
+# my stylesheet additions
+stylesheets = [ "style.css" ]
