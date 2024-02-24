@@ -91,7 +91,7 @@ pub enum Commands {
     /// Show launcher for installed applications
     Launcher,
 
-    /// Show custom menu of options and output selection to stdout
+    /// Show custom menu of options and optionally output selection to stdout
     Menu {
         /// Path to json file containing an array of menu item objects,
         /// or read from stdin when file not provided

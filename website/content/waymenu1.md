@@ -2,4 +2,4 @@
 title = "waymenu(1)"
 +++
 
-{{ markdown(path="man/waymenu.1.scd") }}
+{{ markdown(path="_waymenu.1") }}

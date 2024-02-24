@@ -1,3 +1,7 @@
 #examples {
     img { border: none; }
 }
+
+// hide redundant title in man pages
+h1#waymenu-1 { display: none; }
+h1#waymenu-5 { display: none; }
