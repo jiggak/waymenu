@@ -4,10 +4,6 @@
 
 waymenu - config file, styling, and menu file format
 
-## DESCRIPTION
-
-Oh look! Another description to fill in.
-
 ## CONFIG
 
 The default location of the con
@@ -50,7 +46,7 @@ passed to the command, or stdin when the file is not provided.
 
 File format.
 
-```json
+```jsonc
 [
 	{
 		// Label of the menu item
