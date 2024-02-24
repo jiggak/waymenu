@@ -1,0 +1,10 @@
+{% extends "apollo/templates/section.html" %}
+
+{% block main_content %}
+
+    {# { section.content | safe } #}
+    <div id="{{ section.path | slugify }}">
+        {{ post_macros::content(page=section)}}
+    </div>
+
+{% endblock main_content %}

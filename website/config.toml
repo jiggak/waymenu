@@ -1,0 +1,33 @@
+# The URL the site will be built for
+base_url = "https://example.com"
+
+# Whether to automatically compile all Sass files in the sass directory
+compile_sass = true
+
+# Whether to build a search index to be used later on by a JavaScript library
+build_search_index = false
+
+theme = "apollo"
+
+[markdown]
+# Whether to do syntax highlighting
+# Theme can be customised by setting the `highlight_theme` variable to a theme supported by Zola
+highlight_code = true
+
+[extra]
+toc = true
+theme = "toggle" # light, dark, auto, toggle
+
+menu = [
+    { name = "home", url = "/", weight = 1 },
+    { name = "waymenu(1)", url = "/waymenu1", weight = 2 },
+    { name = "waymenu(5)", url = "/waymenu5", weight = 3 },
+    { name = "examples", url = "/examples", weight = 4 },
+]
+
+socials = [
+    { name = "github", url = "https://github.com/jiggak/waymenu/", icon = "github" },
+]
+
+# my stylesheet additions
+stylesheets = [ "style.css" ]
