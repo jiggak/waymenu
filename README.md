@@ -17,6 +17,10 @@ the executable to your local bin directory.
 
     cargo install --path . --root ~/.local
 
+Or use the `Makefile` to also install man pages (requires `node`).
+
+    make install DESTDIR=~/.local
+
 ## Slow Startup
 
 On my old ThinkPad x1 Carbon there is ~400ms delay in starting waymenu.
