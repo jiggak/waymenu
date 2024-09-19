@@ -8,7 +8,6 @@ files, or creating a menu with your own entries for scripting purposes.
 
 * gtk4
 * [gtk4-layer-shell](https://github.com/wmww/gtk4-layer-shell)
-  [AUR](https://aur.archlinux.org/packages/gtk4-layer-shell)
 
 ## Install
 
