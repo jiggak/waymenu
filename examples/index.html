@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class="dark light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+
+    
+    
+    
+    <title>
+         Post 
+    </title>
+
+        
+            <meta property="og:title" content="Post" />
+        
+     
+
+     
+         
+     
+
+     
+         
+    
+
+    
+    
+
+    
+    
+        <link href=https://waymenu.kropf.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+
+    
+
+    
+    <link rel="alternate" type="application/atom+xml" title="" href="https://waymenu.kropf.io/atom.xml">
+
+
+    
+    
+        <link rel="stylesheet" type="text/css" href=https://waymenu.kropf.io/theme/light.css />
+        <link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://waymenu.kropf.io/theme/dark.css" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=https://waymenu.kropf.io/main.css />
+
+    
+        
+            <link rel="stylesheet" href="https://waymenu.kropf.io/style.css">
+        
+    
+</head>
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main">
+        <a href=https:&#x2F;&#x2F;waymenu.kropf.io&#x2F;></a>
+
+        <div class="socials">
+            
+            <a rel="me" href="https:&#x2F;&#x2F;github.com&#x2F;jiggak&#x2F;waymenu&#x2F;" class="social">
+                <img alt=github src=https://waymenu.kropf.io/social_icons/github.svg>
+            </a>
+            
+        </div>
+    </div>
+
+    <nav>
+        
+        <a href=https://waymenu.kropf.io style="margin-left: 0.7em">home</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu1 style="margin-left: 0.7em">waymenu(1)</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu5 style="margin-left: 0.7em">waymenu(5)</a>
+        
+        <a href=https://waymenu.kropf.io/examples style="margin-left: 0.7em">examples</a>
+        
+
+        
+        | <a id="dark-mode-toggle" onclick="toggleTheme()" href="javascript:void(0)">
+            <img src=https://waymenu.kropf.io/feather/sun.svg id="sun-icon" style="filter: invert(1);" />
+            <img src=https://waymenu.kropf.io/feather/moon.svg id="moon-icon" />
+        </a>
+        <script src=https://waymenu.kropf.io/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+        
+
+    
+    <div id="examples">
+        
+<main>
+    <article>
+        <div class="title">
+            
+            
+    <div class="page-header">
+        Examples<span class="primary-color" style="font-size: 1.6em">.</span>
+    </div>
+
+
+                <div class="meta">
+                    
+
+                    
+                </div>
+        </div>
+
+        
+
+        
+        
+            
+                <h1>Table of Contents</h1>
+                <ul>
+                
+                    <li>
+                        <a href="https://waymenu.kropf.io/examples/#default">Default</a>
+                        
+                    </li>
+                
+                    <li>
+                        <a href="https://waymenu.kropf.io/examples/#styled">Styled</a>
+                        
+                    </li>
+                
+                    <li>
+                        <a href="https://waymenu.kropf.io/examples/#custom-menu">Custom menu</a>
+                        
+                    </li>
+                
+                </ul>
+            
+        
+
+        <section class="body">
+            <h2 id="default">Default</h2>
+<p><img src="https://waymenu.kropf.io/examples/screenshot_default.png" alt="default" title="Default App Launcher" /></p>
+<p><em>Out of the box</em> look and feel with the default GTK Adwaita theme.</p>
+<hr />
+<h2 id="styled">Styled</h2>
+<p><img src="https://waymenu.kropf.io/examples/screenshot_styled.png" alt="styled" title="Styled App Launcher" /></p>
+<p>Waymenu styled using colours from a shared pallet. Built with <code>sassc</code>.</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>sassc style.scss ~/.config/waybar/style.css
+</span></code></pre>
+<pre data-lang="scss" style="background-color:#2b303b;color:#c0c5ce;" class="language-scss "><code class="language-scss" data-lang="scss"><span style="color:#65737e;">// @import &#39;../_pallet.scss&#39;;
+</span><span>$</span><span style="color:#bf616a;">pallet1</span><span>: </span><span style="color:#96b5b4;">#636F6F</span><span>;
+</span><span>$</span><span style="color:#bf616a;">pallet3</span><span>: </span><span style="color:#96b5b4;">#287BA1</span><span>;
+</span><span>$</span><span style="color:#bf616a;">pallet7</span><span>: </span><span style="color:#96b5b4;">#33393C</span><span>;
+</span><span>
+</span><span>$</span><span style="color:#bf616a;">border</span><span>: </span><span style="color:#d08770;">4px</span><span>;
+</span><span>$</span><span style="color:#bf616a;">radius</span><span>: </span><span style="color:#d08770;">8px</span><span>;
+</span><span>$</span><span style="color:#bf616a;">main-padding</span><span>: </span><span style="color:#d08770;">16px</span><span>;
+</span><span>$</span><span style="color:#bf616a;">border-color</span><span>: $</span><span style="color:#bf616a;">pallet1</span><span>;
+</span><span>$</span><span style="color:#bf616a;">background-color</span><span>: $</span><span style="color:#bf616a;">pallet7</span><span>;
+</span><span>$</span><span style="color:#bf616a;">entry-text</span><span>: white;
+</span><span>$</span><span style="color:#bf616a;">selected-color</span><span>: transparent;
+</span><span>$</span><span style="color:#bf616a;">selected-border</span><span>: $</span><span style="color:#bf616a;">pallet1</span><span>;
+</span><span>$</span><span style="color:#bf616a;">selected-text</span><span>: $</span><span style="color:#bf616a;">pallet3</span><span>;
+</span><span>
+</span><span style="color:#bf616a;">* </span><span>{
+</span><span>    font-family: &#39;</span><span style="color:#a3be8c;">Open Sans</span><span>&#39;;
+</span><span>    font-weight: </span><span style="color:#d08770;">600</span><span>;
+</span><span>    font-size: </span><span style="color:#d08770;">16px</span><span>;
+</span><span>    outline-style: none;
+</span><span>}
+</span><span>
+</span><span style="color:#8fa1b3;">#window </span><span>{
+</span><span>    border-radius: $</span><span style="color:#bf616a;">radius</span><span>;
+</span><span>    border: $</span><span style="color:#bf616a;">border </span><span>solid $</span><span style="color:#bf616a;">border-color</span><span>;
+</span><span>    background-color: $</span><span style="color:#bf616a;">background-color</span><span>;
+</span><span>    padding: $</span><span style="color:#bf616a;">main-padding</span><span>;
+</span><span>    </span><span style="color:#65737e;">// this causes weird alpha bugs when using GSK_RENDERER=gl (the default for GTK4)
+</span><span>    opacity: </span><span style="color:#d08770;">0.95</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fa1b3;">#search </span><span>{
+</span><span>    margin-bottom: $</span><span style="color:#bf616a;">main-padding</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fa1b3;">#list </span><span>{
+</span><span>    background-color: transparent;
+</span><span>
+</span><span>    row {
+</span><span>        border-radius: $</span><span style="color:#bf616a;">radius</span><span>;
+</span><span>
+</span><span>        </span><span style="color:#65737e;">// invisible border so selected/unselected entries have same size
+</span><span>        border: $</span><span style="color:#bf616a;">border </span><span>solid transparent;
+</span><span>        color: $</span><span style="color:#bf616a;">entry-text</span><span>;
+</span><span>
+</span><span style="color:#b48ead;">        </span><span>&amp;</span><span style="color:#b48ead;">:</span><span>selected {
+</span><span>            border: $</span><span style="color:#bf616a;">border </span><span>solid $</span><span style="color:#bf616a;">selected-border</span><span>;
+</span><span>            background-color: $</span><span style="color:#bf616a;">selected-color</span><span>;
+</span><span>
+</span><span style="color:#b48ead;">            </span><span style="color:#bf616a;">label </span><span>{
+</span><span>                color: $</span><span style="color:#bf616a;">selected-text</span><span>;
+</span><span>            }
+</span><span>        }
+</span><span>
+</span><span style="color:#b48ead;">        </span><span style="color:#bf616a;">image </span><span>{
+</span><span>            padding: $</span><span style="color:#bf616a;">main-padding </span><span>/ </span><span style="color:#d08770;">3</span><span>;
+</span><span>        }
+</span><span>    }
+</span><span>}
+</span></code></pre>
+<hr />
+<h2 id="custom-menu">Custom menu</h2>
+<p><img src="https://waymenu.kropf.io/examples/screenshot_power.png" alt="power" title="Power Actions Menu" /></p>
+<p>Custom menu with &quot;Power&quot; related actions.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># using WAYMENU_HOME set to dir with `config.jsonc` and `style.css`
+</span><span style="color:#65737e;"># OR you could pass -c and -s arguments
+</span><span style="color:#bf616a;">WAYMENU_HOME</span><span>=</span><span style="color:#bf616a;">~</span><span style="color:#a3be8c;">/.config/waymenu/power </span><span style="color:#bf616a;">waymenu</span><span> menu menu.json
+</span></code></pre>
+<p><code>menu.json</code></p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>[
+</span><span>    {
+</span><span>        &quot;</span><span style="color:#a3be8c;">label</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">Lock</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">icon</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">/usr/share/icons/Pop/128x128/actions/system-lock-screen.svg</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">exec</span><span>&quot;: [&quot;</span><span style="color:#a3be8c;">swaylock</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">-f</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">-e</span><span>&quot;]
+</span><span>    },
+</span><span>    {
+</span><span>        &quot;</span><span style="color:#a3be8c;">label</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">Suspend</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">icon</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">/usr/share/icons/Pop/128x128/actions/system-suspend.svg</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">exec</span><span>&quot;: [&quot;</span><span style="color:#a3be8c;">systemctl</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">suspend</span><span>&quot;]
+</span><span>    },
+</span><span>    {
+</span><span>        &quot;</span><span style="color:#a3be8c;">label</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">Logout</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">icon</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">/usr/share/icons/Pop/128x128/actions/system-log-out.svg</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">exec</span><span>&quot;: [&quot;</span><span style="color:#a3be8c;">hyprctl</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">dispatch</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">exit</span><span>&quot;]
+</span><span>    },
+</span><span>    {
+</span><span>        &quot;</span><span style="color:#a3be8c;">label</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">Restart</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">icon</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">/usr/share/icons/Pop/128x128/actions/system-restart.svg</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">exec</span><span>&quot;: [&quot;</span><span style="color:#a3be8c;">systemctl</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">reboot</span><span>&quot;]
+</span><span>    },
+</span><span>    {
+</span><span>        &quot;</span><span style="color:#a3be8c;">label</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">Shutdown</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">icon</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">/usr/share/icons/Pop/128x128/actions/system-shutdown.svg</span><span>&quot;,
+</span><span>        &quot;</span><span style="color:#a3be8c;">exec</span><span>&quot;: [&quot;</span><span style="color:#a3be8c;">systemctl</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">poweroff</span><span>&quot;]
+</span><span>    }
+</span><span>]
+</span></code></pre>
+<p><code>~/.config/waymenu/power/style.css</code></p>
+<pre data-lang="css" style="background-color:#2b303b;color:#c0c5ce;" class="language-css "><code class="language-css" data-lang="css"><span style="color:#8fa1b3;">#window </span><span>{
+</span><span>    border-radius: </span><span style="color:#d08770;">10px</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fa1b3;">#list</span><span style="color:#b48ead;"> row </span><span>{
+</span><span>    padding: </span><span style="color:#d08770;">10px</span><span>;
+</span><span>}
+</span><span>
+</span><span style="color:#8fa1b3;">#list</span><span style="color:#b48ead;"> row </span><span style="color:#bf616a;">image </span><span>{
+</span><span>    -gtk-icon-size: </span><span style="color:#d08770;">96px</span><span>;
+</span><span>    padding-bottom: </span><span style="color:#d08770;">5px</span><span>;
+</span><span>}
+</span></code></pre>
+<p><code>~/.config/waymenu/power/config.jsonc</code></p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>{
+</span><span>    &quot;</span><span style="color:#a3be8c;">width</span><span>&quot;: </span><span style="color:#d08770;">580</span><span>,
+</span><span>    &quot;</span><span style="color:#a3be8c;">height</span><span>&quot;: </span><span style="color:#d08770;">142</span><span>,
+</span><span>    &quot;</span><span style="color:#a3be8c;">orientation</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">horizontal</span><span>&quot;,
+</span><span>    &quot;</span><span style="color:#a3be8c;">hide_search</span><span>&quot;: </span><span style="color:#d08770;">true
+</span><span>}
+</span></code></pre>
+
+        </section>
+
+        
+
+    </article>
+</main>
+
+    </div>
+
+
+    </div>
+</body>
+
+</html>

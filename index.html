@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="dark light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+
+    
+    
+    
+    <title>
+        Home
+    </title>
+    
+        <meta property="og:title" content="Home" />
+    
+
+    
+
+     
+         
+     
+
+     
+         
+    
+
+    
+    
+
+    
+    
+        <link href=https://waymenu.kropf.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+
+    
+
+    
+    <link rel="alternate" type="application/atom+xml" title="" href="https://waymenu.kropf.io/atom.xml">
+
+
+    
+    
+        <link rel="stylesheet" type="text/css" href=https://waymenu.kropf.io/theme/light.css />
+        <link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://waymenu.kropf.io/theme/dark.css" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=https://waymenu.kropf.io/main.css />
+
+    
+        
+            <link rel="stylesheet" href="https://waymenu.kropf.io/style.css">
+        
+    
+</head>
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main">
+        <a href=https:&#x2F;&#x2F;waymenu.kropf.io&#x2F;></a>
+
+        <div class="socials">
+            
+            <a rel="me" href="https:&#x2F;&#x2F;github.com&#x2F;jiggak&#x2F;waymenu&#x2F;" class="social">
+                <img alt=github src=https://waymenu.kropf.io/social_icons/github.svg>
+            </a>
+            
+        </div>
+    </div>
+
+    <nav>
+        
+        <a href=https://waymenu.kropf.io style="margin-left: 0.7em">home</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu1 style="margin-left: 0.7em">waymenu(1)</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu5 style="margin-left: 0.7em">waymenu(5)</a>
+        
+        <a href=https://waymenu.kropf.io/examples style="margin-left: 0.7em">examples</a>
+        
+
+        
+        | <a id="dark-mode-toggle" onclick="toggleTheme()" href="javascript:void(0)">
+            <img src=https://waymenu.kropf.io/feather/sun.svg id="sun-icon" style="filter: invert(1);" />
+            <img src=https://waymenu.kropf.io/feather/moon.svg id="moon-icon" />
+        </a>
+        <script src=https://waymenu.kropf.io/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+        
+
+    
+    <div id="">
+        
+<main>
+    <article>
+        <div class="title">
+            
+            
+    <div class="page-header">
+        Waymenu<span class="primary-color" style="font-size: 1.6em">.</span>
+    </div>
+
+
+                <div class="meta">
+                    
+
+                    
+                </div>
+        </div>
+
+        
+
+        
+        
+            
+        
+
+        <section class="body">
+            <p>Waymenu is a launcher/menu program for wlroots based compositors written in
+Rust using GTK v4. It supports listing/launching applications from <code>.desktop</code>
+files, or creating a menu with your own entries for scripting purposes.</p>
+<p><img src="screenshot1.png" alt="screenshot1" title="App Launcher" /></p>
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>gtk4</li>
+<li><a href="https://github.com/wmww/gtk4-layer-shell">gtk4-layer-shell</a></li>
+</ul>
+<h2 id="install">Install</h2>
+<p>Assuming you have <code>~/.local/bin</code> in your <code>$PATH</code>, use cargo to build and copy
+the executable to your local bin directory.</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>cargo install --path . --root ~/.local
+</span></code></pre>
+<p>Or use the <code>Makefile</code> to also install man pages (requires <code>node</code>).</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>make install DESTDIR=~/.local
+</span></code></pre>
+<h2 id="slow-startup">Slow Startup</h2>
+<p>On my old ThinkPad x1 Carbon there is ~400ms delay in starting waymenu.</p>
+<p>Turns out this affects other GTK4 apps.
+<a href="https://gitlab.gnome.org/GNOME/gtk/-/issues/4112">https://gitlab.gnome.org/GNOME/gtk/-/issues/4112</a></p>
+<p>There is an upstream issue tracking this in the mesa projects.
+<a href="https://gitlab.freedesktop.org/mesa/mesa/-/issues/5113">https://gitlab.freedesktop.org/mesa/mesa/-/issues/5113</a></p>
+<p>Workaround is to use the cairo renderer.</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>GSK_RENDERER=cairo waymenu launcher
+</span></code></pre>
+
+        </section>
+
+        
+
+    </article>
+</main>
+
+    </div>
+
+
+    </div>
+</body>
+
+</html>

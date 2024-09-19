@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="dark light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+
+    
+    
+    
+    <title>
+         waymenu(5)
+        
+    </title>
+
+        
+            <meta property="og:title" content="waymenu(5)" />
+        
+     
+
+     
+         
+     
+
+     
+         
+    
+
+    
+    
+
+    
+    
+        <link href=https://waymenu.kropf.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+
+    
+
+    
+    <link rel="alternate" type="application/atom+xml" title="" href="https://waymenu.kropf.io/atom.xml">
+
+
+    
+    
+        <link rel="stylesheet" type="text/css" href=https://waymenu.kropf.io/theme/light.css />
+        <link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://waymenu.kropf.io/theme/dark.css" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=https://waymenu.kropf.io/main.css />
+
+    
+        
+            <link rel="stylesheet" href="https://waymenu.kropf.io/style.css">
+        
+    
+</head>
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main">
+        <a href=https:&#x2F;&#x2F;waymenu.kropf.io&#x2F;></a>
+
+        <div class="socials">
+            
+            <a rel="me" href="https:&#x2F;&#x2F;github.com&#x2F;jiggak&#x2F;waymenu&#x2F;" class="social">
+                <img alt=github src=https://waymenu.kropf.io/social_icons/github.svg>
+            </a>
+            
+        </div>
+    </div>
+
+    <nav>
+        
+        <a href=https://waymenu.kropf.io style="margin-left: 0.7em">home</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu1 style="margin-left: 0.7em">waymenu(1)</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu5 style="margin-left: 0.7em">waymenu(5)</a>
+        
+        <a href=https://waymenu.kropf.io/examples style="margin-left: 0.7em">examples</a>
+        
+
+        
+        | <a id="dark-mode-toggle" onclick="toggleTheme()" href="javascript:void(0)">
+            <img src=https://waymenu.kropf.io/feather/sun.svg id="sun-icon" style="filter: invert(1);" />
+            <img src=https://waymenu.kropf.io/feather/moon.svg id="moon-icon" />
+        </a>
+        <script src=https://waymenu.kropf.io/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+        
+    
+<main>
+    <article>
+        <div class="title">
+            
+            
+    <div class="page-header">
+        waymenu(5)<span class="primary-color" style="font-size: 1.6em">.</span>
+    </div>
+
+
+                <div class="meta">
+                    
+
+                    
+                </div>
+        </div>
+
+        
+
+        
+        
+            
+        
+
+        <section class="body">
+            <h1 id="waymenu-5">waymenu(5)</h1>
+<h2 id="name">NAME</h2>
+<p>waymenu - config file, styling, and menu file format</p>
+<h2 id="config">CONFIG</h2>
+<p>The default location of the con</p>
+<p>Use the <code>init-config</code> command to write the default <code>config.jsonc</code> to the config
+directory, which includes comments describing the various settings.</p>
+<p>Options provided on the command line take precedence over config file settings.</p>
+<h2 id="styling">STYLING</h2>
+<p>Waymenu style is fully customizable using CSS.</p>
+<p>The default location of the stylesheet is <code>$XDG_CONFIG_HOME/waymenu/style.css</code>.
+Use <code>waymenu init-config</code> to save the default stylesheet as a starting point.</p>
+<p>The widget hierarchy is as follows:</p>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>window#window
+</span><span>|_ box#window-box
+</span><span>   |_ entry#search
+</span><span>   |_ scrollwindow#scroll
+</span><span>      |_ listview#list
+</span><span>         |_ row
+</span><span>            |_ box
+</span><span>               |_ image
+</span><span>               |_ label
+</span></code></pre>
+<p>The GTK debugger can be helpful for inspecting widgets and making CSS changes
+while the app is running.</p>
+<p><code>GTK_DEBUG=interactive waymenu launcher</code></p>
+<h2 id="menu-format">MENU FORMAT</h2>
+<p>When using the <code>menu</code> command, waymenu reads the menu JSON data from a file
+passed to the command, or stdin when the file is not provided.</p>
+<p>File format.</p>
+<pre data-lang="jsonc" style="background-color:#2b303b;color:#c0c5ce;" class="language-jsonc "><code class="language-jsonc" data-lang="jsonc"><span>[
+</span><span>	{
+</span><span>		// Label of the menu item
+</span><span>		&quot;label&quot;: &quot;string&quot;,
+</span><span>		// Optional path to icon file. Any file type supported by gio::FileType
+</span><span>		// should be supported https://docs.gtk.org/gio/class.FileIcon.html.
+</span><span>		&quot;icon&quot;: &quot;optional[string]&quot;,
+</span><span>		// Optional command to execute when the menu item is selected.
+</span><span>		// When not provided, the label is printed to stdout when selected.
+</span><span>		// Provide the command name as a string, or an array of strings to
+</span><span>		// include one or more parameters to the command.
+</span><span>		&quot;exec&quot;: &quot;optional[string|array[string]]&quot;
+</span><span>	},
+</span><span>	// ...
+</span><span>]
+</span></code></pre>
+
+        </section>
+
+        
+
+    </article>
+</main>
+
+
+    </div>
+</body>
+
+</html>

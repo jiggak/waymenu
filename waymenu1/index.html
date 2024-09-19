@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html class="dark light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    
+
+    
+    
+    
+    <title>
+         waymenu(1)
+        
+    </title>
+
+        
+            <meta property="og:title" content="waymenu(1)" />
+        
+     
+
+     
+         
+     
+
+     
+         
+    
+
+    
+    
+
+    
+    
+        <link href=https://waymenu.kropf.io/fonts.css rel="stylesheet" />
+    
+
+    
+    
+
+
+    
+
+    
+    <link rel="alternate" type="application/atom+xml" title="" href="https://waymenu.kropf.io/atom.xml">
+
+
+    
+    
+        <link rel="stylesheet" type="text/css" href=https://waymenu.kropf.io/theme/light.css />
+        <link id="darkModeStyle" rel="stylesheet" type="text/css" href="https://waymenu.kropf.io/theme/dark.css" />
+    
+
+    <link rel="stylesheet" type="text/css" media="screen" href=https://waymenu.kropf.io/main.css />
+
+    
+        
+            <link rel="stylesheet" href="https://waymenu.kropf.io/style.css">
+        
+    
+</head>
+
+<body>
+    <div class="content">
+        <header>
+    <div class="main">
+        <a href=https:&#x2F;&#x2F;waymenu.kropf.io&#x2F;></a>
+
+        <div class="socials">
+            
+            <a rel="me" href="https:&#x2F;&#x2F;github.com&#x2F;jiggak&#x2F;waymenu&#x2F;" class="social">
+                <img alt=github src=https://waymenu.kropf.io/social_icons/github.svg>
+            </a>
+            
+        </div>
+    </div>
+
+    <nav>
+        
+        <a href=https://waymenu.kropf.io style="margin-left: 0.7em">home</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu1 style="margin-left: 0.7em">waymenu(1)</a>
+        
+        <a href=https://waymenu.kropf.io/waymenu5 style="margin-left: 0.7em">waymenu(5)</a>
+        
+        <a href=https://waymenu.kropf.io/examples style="margin-left: 0.7em">examples</a>
+        
+
+        
+        | <a id="dark-mode-toggle" onclick="toggleTheme()" href="javascript:void(0)">
+            <img src=https://waymenu.kropf.io/feather/sun.svg id="sun-icon" style="filter: invert(1);" />
+            <img src=https://waymenu.kropf.io/feather/moon.svg id="moon-icon" />
+        </a>
+        <script src=https://waymenu.kropf.io/js/themetoggle.js></script>
+        
+    </nav>
+</header>
+
+
+        
+        
+    
+<main>
+    <article>
+        <div class="title">
+            
+            
+    <div class="page-header">
+        waymenu(1)<span class="primary-color" style="font-size: 1.6em">.</span>
+    </div>
+
+
+                <div class="meta">
+                    
+
+                    
+                </div>
+        </div>
+
+        
+
+        
+        
+            
+        
+
+        <section class="body">
+            <h1 id="waymenu-1">waymenu(1)</h1>
+<h2 id="name">NAME</h2>
+<p>waymenu - launcher/menu written in Rust/GTK4 for wlroots based wayland compositors</p>
+<h2 id="synopsis">SYNOPSIS</h2>
+<p><strong>waymenu</strong> [options...] &lt;COMMAND&gt; [command options...]</p>
+<h2 id="description">DESCRIPTION</h2>
+<p>Waymenu is a launcher/menu program for wlroots based compositors written in
+Rust using GTK v4. It supports listing/launching applications from <code>.desktop</code>
+files, or creating a menu with your own entries for scripting purposes.</p>
+<h2 id="commands">COMMANDS</h2>
+<p><strong>launcher</strong>
+Show launcher for installed application</p>
+<p><strong>menu</strong>
+Show custom menu of options and optionally output selection to stdout</p>
+<p><strong>init-config</strong>
+Write default <code>config.jsonc</code>, <code>style.css</code> files and exit</p>
+<p><strong>help</strong>
+Print help or the help of the given subcommand</p>
+<h2 id="options">OPTIONS</h2>
+<p><strong>--help</strong>
+Print help</p>
+<p><strong>-s, --style</strong> &lt;STYLE&gt;
+Path to stylesheet.
+Default: <code>$WAYMENU_HOME/style.css</code> or <code>$XDG_CONFIG_HOME/waymenu/style.css</code>.</p>
+<p><strong>-c, --config</strong> &lt;CONFIG&gt;
+Path to config file.
+Default: <code>$WAYMENU_HOME/config.jsonc</code> or <code>$XDG_CONFIG_HOME/waymenu/config.jsonc</code>.</p>
+<p><strong>-v</strong>
+Enable verbose logging (or set env var <code>G_MESSAGES_DEBUG=all</code>).</p>
+<p><strong>--width</strong> &lt;WIDTH&gt;
+Window width, default is 640.</p>
+<p><strong>--height</strong> &lt;HEIGHT&gt;
+Window height, default is 480.</p>
+<p><strong>--orientation</strong> &lt;ORIENTATION&gt;
+Display menu in vertical or horizontal orientation.
+Default: vertical (possible values: horizontal, vertical).</p>
+<p><strong>--hide-search</strong>
+Hide search field.</p>
+<p><strong>--history-size</strong> &lt;HISTORY_SIZE&gt;
+Max recent apps at top of launcher list.
+Default: 5 (0 disables launch history).</p>
+<h2 id="environment">ENVIRONMENT</h2>
+<p><strong>WAYMENU_HOME</strong>
+Directory where waymenu attempts to find <code>config.jsonc</code> and <code>style.css</code>.
+When <code>$WAYMENU_HOME</code> is not set, waymenu uses <code>$XDG_CONFIG_HOME/waymenu</code>.
+When <code>$XDG_CONFIG_HOME</code> is not set, waymenu uses <code>$HOME/.config/waymenu</code>.</p>
+
+        </section>
+
+        
+
+    </article>
+</main>
+
+
+    </div>
+</body>
+
+</html>
